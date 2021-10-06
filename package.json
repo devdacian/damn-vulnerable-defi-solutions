@@ -13,8 +13,8 @@
     "the-rewarder": "npx hardhat test test/the-rewarder/the-rewarder.challenge.js",
     "selfie": "npx hardhat test test/selfie/selfie.challenge.js",
     "compromised": "npx hardhat test test/compromised/compromised.challenge.js",
-    "puppet": "npx hardhat test test/puppet/puppet.solved.js",
-    "puppet-v2": "npx hardhat test test/puppet-v2/puppet-v2.solved.js",
+    "puppet": "npx hardhat test test/puppet/puppet.challenge.js",
+    "puppet-v2": "npx hardhat test test/puppet-v2/puppet-v2.challenge.js",
     "free-rider": "npx hardhat test test/free-rider/free-rider.challenge.js",
     "backdoor": "npx hardhat test test/backdoor/backdoor.challenge.js",
     "climber": "npx hardhat test test/climber/climber.challenge.js"
