@@ -34,7 +34,7 @@ describe('[Challenge] Truster', function () {
     after(async function () {
         /** SUCCESS CONDITIONS */
 
-        // Attacker has stolen all tokens from the pool
+        // Attacker has taken all tokens from the pool
         expect(
             await this.token.balanceOf(attacker.address)
         ).to.equal(TOKENS_IN_POOL);

@@ -108,7 +108,7 @@ describe('[Challenge] Puppet', function () {
     after(async function () {
         /** SUCCESS CONDITIONS */
 
-        // Attacker has stolen all tokens from the pool        
+        // Attacker has taken all tokens from the pool        
         expect(
             await this.token.balanceOf(this.lendingPool.address)
         ).to.be.eq('0');
