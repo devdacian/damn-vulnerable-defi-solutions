@@ -10,6 +10,14 @@ describe('[Challenge] Climber', function () {
     before(async function () {
         /** SETUP SCENARIO - NO NEED TO CHANGE ANYTHING HERE */
         [deployer, proposer, sweeper, attacker] = await ethers.getSigners();
+
+        await ethers.provider.send("hardhat_setBalance", [
+            attacker.address,
+            "0x16345785d8a0000", // 0.1 ETH
+        ]);
+        expect(
+            await ethers.provider.getBalance(attacker.address)
+        ).to.equal(ethers.utils.parseEther('0.1'));
         
         // Deploy the vault behind a proxy using the UUPS pattern,
         // passing the necessary addresses for the `ClimberVault::initialize(address,address,address)` function
