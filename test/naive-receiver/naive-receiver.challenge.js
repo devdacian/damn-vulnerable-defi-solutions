@@ -11,7 +11,7 @@ describe('[Challenge] Naive receiver', function () {
     const ETHER_IN_RECEIVER = ethers.utils.parseEther('10');
 
     before(async function () {
-        /** SETUP - NO NEED TO CHANGE ANYTHING HERE */
+        /** SETUP SCENARIO - NO NEED TO CHANGE ANYTHING HERE */
         [deployer, user, attacker] = await ethers.getSigners();
 
         const LenderPoolFactory = await ethers.getContractFactory('NaiveReceiverLenderPool', deployer);

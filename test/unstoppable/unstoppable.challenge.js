@@ -9,7 +9,7 @@ describe('[Challenge] Unstoppable', function () {
     const INITIAL_ATTACKER_TOKEN_BALANCE = ethers.utils.parseEther('100');
 
     before(async function () {
-        /** SETUP SCENARIO - NO NEED TO MODIFY ANYTHING HERE */
+        /** SETUP SCENARIO - NO NEED TO CHANGE ANYTHING HERE */
 
         [deployer, attacker, someUser] = await ethers.getSigners();
 
@@ -43,7 +43,7 @@ describe('[Challenge] Unstoppable', function () {
     });
 
     after(async function () {
-        /** SUCCESS CONDITION */
+        /** SUCCESS CONDITIONS */
 
         // It is no longer possible to execute flash loans
         await expect(

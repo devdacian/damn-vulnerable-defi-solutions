@@ -10,7 +10,7 @@ import "./ClimberTimelock.sol";
 
 /**
  * @title ClimberVault
- * @dev To be deployed behing a proxy following the UUPS pattern. Upgrades are to be triggered by the owner.
+ * @dev To be deployed behind a proxy following the UUPS pattern. Upgrades are to be triggered by the owner.
  * @author Damn Vulnerable DeFi (https://damnvulnerabledefi.xyz)
  */
 contract ClimberVault is Initializable, OwnableUpgradeable, UUPSUpgradeable {

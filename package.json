@@ -1,23 +1,24 @@
 {
   "author": "@tinchoabbate",
+  "version": "2.0.0",
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/tinchoabbate/damn-vulnerable-defi.git"
   },
   "scripts": {
-    "unstoppable": "npx hardhat test test/unstoppable/unstoppable.challenge.js",
-    "truster": "npx hardhat test test/truster/truster.challenge.js",
-    "naive-receiver": "npx hardhat test test/naive-receiver/naive-receiver.challenge.js",
-    "side-entrance": "npx hardhat test test/side-entrance/side-entrance.challenge.js",
-    "the-rewarder": "npx hardhat test test/the-rewarder/the-rewarder.challenge.js",
-    "selfie": "npx hardhat test test/selfie/selfie.challenge.js",
-    "compromised": "npx hardhat test test/compromised/compromised.challenge.js",
-    "puppet": "npx hardhat test test/puppet/puppet.challenge.js",
-    "puppet-v2": "npx hardhat test test/puppet-v2/puppet-v2.challenge.js",
-    "free-rider": "npx hardhat test test/free-rider/free-rider.challenge.js",
-    "backdoor": "npx hardhat test test/backdoor/backdoor.challenge.js",
-    "climber": "npx hardhat test test/climber/climber.challenge.js"
+    "unstoppable": "yarn hardhat test test/unstoppable/unstoppable.challenge.js",
+    "truster": "yarn hardhat test test/truster/truster.challenge.js",
+    "naive-receiver": "yarn hardhat test test/naive-receiver/naive-receiver.challenge.js",
+    "side-entrance": "yarn hardhat test test/side-entrance/side-entrance.challenge.js",
+    "the-rewarder": "yarn hardhat test test/the-rewarder/the-rewarder.challenge.js",
+    "selfie": "yarn hardhat test test/selfie/selfie.challenge.js",
+    "compromised": "yarn hardhat test test/compromised/compromised.challenge.js",
+    "puppet": "yarn hardhat test test/puppet/puppet.challenge.js",
+    "puppet-v2": "yarn hardhat test test/puppet-v2/puppet-v2.challenge.js",
+    "free-rider": "yarn hardhat test test/free-rider/free-rider.challenge.js",
+    "backdoor": "yarn hardhat test test/backdoor/backdoor.challenge.js",
+    "climber": "yarn hardhat test test/climber/climber.challenge.js"
   },
   "devDependencies": {
     "@gnosis.pm/safe-contracts": "1.3.0",

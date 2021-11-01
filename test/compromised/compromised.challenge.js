@@ -14,7 +14,7 @@ describe('Compromised challenge', function () {
     const INITIAL_NFT_PRICE = ethers.utils.parseEther('999');
 
     before(async function () {
-        /** SETUP - NO NEED TO CHANGE ANYTHING HERE */
+        /** SETUP SCENARIO - NO NEED TO CHANGE ANYTHING HERE */
         [deployer, attacker] = await ethers.getSigners();
 
         const ExchangeFactory = await ethers.getContractFactory('Exchange', deployer);
@@ -64,6 +64,8 @@ describe('Compromised challenge', function () {
     });
 
     after(async function () {
+        /** SUCCESS CONDITIONS */
+        
         // Exchange must have lost all ETH
         expect(
             await ethers.provider.getBalance(this.exchange.address)

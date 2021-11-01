@@ -65,23 +65,23 @@ contract ClimberTimelock is AccessControl {
     function getOperationId(
         address[] calldata targets,
         uint256[] calldata values,
-        bytes[] calldata datas,
+        bytes[] calldata dataElements,
         bytes32 salt
     ) public pure returns (bytes32) {
-        return keccak256(abi.encode(targets, values, datas, salt));
+        return keccak256(abi.encode(targets, values, dataElements, salt));
     }
 
     function schedule(
         address[] calldata targets,
         uint256[] calldata values,
-        bytes[] calldata datas,
+        bytes[] calldata dataElements,
         bytes32 salt
     ) external onlyRole(PROPOSER_ROLE) {
         require(targets.length > 0 && targets.length < 256);
         require(targets.length == values.length);
-        require(targets.length == datas.length);
+        require(targets.length == dataElements.length);
 
-        bytes32 id = getOperationId(targets, values, datas, salt);
+        bytes32 id = getOperationId(targets, values, dataElements, salt);
         require(getOperationState(id) == OperationState.Unknown, "Operation already known");
         
         operations[id].readyAtTimestamp = uint64(block.timestamp) + delay;
@@ -92,17 +92,17 @@ contract ClimberTimelock is AccessControl {
     function execute(
         address[] calldata targets,
         uint256[] calldata values,
-        bytes[] calldata datas,
+        bytes[] calldata dataElements,
         bytes32 salt
     ) external payable {
         require(targets.length > 0, "Must provide at least one target");
         require(targets.length == values.length);
-        require(targets.length == datas.length);
+        require(targets.length == dataElements.length);
 
-        bytes32 id = getOperationId(targets, values, datas, salt);
+        bytes32 id = getOperationId(targets, values, dataElements, salt);
 
         for (uint8 i = 0; i < targets.length; i++) {
-            targets[i].functionCallWithValue(datas[i], values[i]);
+            targets[i].functionCallWithValue(dataElements[i], values[i]);
         }
         
         require(getOperationState(id) == OperationState.ReadyForExecution);

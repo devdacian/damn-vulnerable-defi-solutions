@@ -22,7 +22,7 @@ describe('[Challenge] Free Rider', function () {
     const UNISWAP_INITIAL_WETH_RESERVE = ethers.utils.parseEther('9000');
 
     before(async function () {
-        /** SETUP - NO NEED TO CHANGE ANYTHING HERE */
+        /** SETUP SCENARIO - NO NEED TO CHANGE ANYTHING HERE */
         [deployer, attacker, buyer] = await ethers.getSigners();
 
         // Attacker starts with little ETH balance
