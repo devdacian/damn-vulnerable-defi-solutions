@@ -32,7 +32,7 @@ contract FreeRiderNFTMarketplace is ReentrancyGuard {
     }
 
     function offerMany(uint256[] calldata tokenIds, uint256[] calldata prices) external nonReentrant {
-        require(tokenIds.length > 0 && tokenIds.length == prices.length);
+        require(tokenIds.length > 0 && tokenIds.length == prices.length, "Amounts of token IDs and prices do not match");
         for (uint256 i = 0; i < tokenIds.length; i++) {
             _offerOne(tokenIds[i], prices[i]);
         }

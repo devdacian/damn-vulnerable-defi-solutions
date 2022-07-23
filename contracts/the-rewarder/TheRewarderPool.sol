@@ -53,13 +53,14 @@ contract TheRewarderPool {
         distributeRewards();
 
         require(
-            liquidityToken.transferFrom(msg.sender, address(this), amountToDeposit)
+            liquidityToken.transferFrom(msg.sender, address(this), amountToDeposit),
+            "Transfer failed"
         );
     }
 
     function withdraw(uint256 amountToWithdraw) external {
         accToken.burn(msg.sender, amountToWithdraw);
-        require(liquidityToken.transfer(msg.sender, amountToWithdraw));
+        require(liquidityToken.transfer(msg.sender, amountToWithdraw), "Transfer failed");
     }
 
     function distributeRewards() public returns (uint256) {

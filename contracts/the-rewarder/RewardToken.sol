@@ -20,7 +20,7 @@ contract RewardToken is ERC20, AccessControl {
     }
 
     function mint(address to, uint256 amount) external {
-        require(hasRole(MINTER_ROLE, msg.sender));
+        require(hasRole(MINTER_ROLE, msg.sender), "Caller is not minter");
         _mint(to, amount);
     }
 }

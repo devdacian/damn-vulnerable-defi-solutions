@@ -37,10 +37,10 @@ contract FreeRiderBuyer is ReentrancyGuard, IERC721Receiver {
         nonReentrant
         returns (bytes4) 
     {
-        require(msg.sender == address(nft));
-        require(tx.origin == partner);
-        require(_tokenId >= 0 && _tokenId <= 5);
-        require(nft.ownerOf(_tokenId) == address(this));
+        require(msg.sender == address(nft), "Caller is not the NFT contract");
+        require(tx.origin == partner, "Transaction origin is not the partner");
+        require(_tokenId >= 0 && _tokenId <= 5, "Unexpected token ID");
+        require(nft.ownerOf(_tokenId) == address(this), "Still not the owner of the specified token");
         
         received++;
         if(received == 6) {            

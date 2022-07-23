@@ -7,7 +7,8 @@
 - Change final assertion in Puppet challenge [following PR#9](https://github.com/tinchoabbate/damn-vulnerable-defi/pull/9).
 - Remove unnecessary `await`s in The Rewarder challenge [following PR#12](https://github.com/tinchoabbate/damn-vulnerable-defi/pull/12)
 - Update WETH9 to Solidity 0.8.0 [following PR#5](https://github.com/tinchoabbate/damn-vulnerable-defi/pull/5)
-- Change timestamp comparison in `ClimberTimelock` contract [following PR#16](https://github.com/tinchoabbate/damn-vulnerable-defi/pull/16)
+- Change timestamp comparison in `ClimberTimelock` contract [following PR#16](https://github.com/tinchoabbate/damn-vulnerable-defi/pull/16) and additional refactors.
+- Improve error messages to ease debugging.
 
 ## v2.2.0
 

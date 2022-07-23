@@ -24,9 +24,9 @@ contract ClimberTimelock is AccessControl {
 
     // Operation data tracked in this contract
     struct Operation {
-        uint64 readyAtTimestamp;   // timestamp at which the operation will be ready for execution
-        bool known;         // whether the operation is registered in the timelock
-        bool executed;      // whether the operation has been executed
+        uint64 readyAtTimestamp;    // timestamp at which the operation will be ready for execution
+        bool known;                 // whether the operation is registered in the timelock
+        bool executed;              // whether the operation has been executed
     }
 
     // Operations are tracked by their bytes32 identifier
@@ -48,17 +48,19 @@ contract ClimberTimelock is AccessControl {
         _setupRole(PROPOSER_ROLE, proposer);
     }
 
-    function getOperationState(bytes32 id) public view returns (OperationState) {
+    function getOperationState(bytes32 id) public view returns (OperationState state) {
         Operation memory op = operations[id];
-        
-        if(op.executed) {
-            return OperationState.Executed;
-        } else if(op.readyAtTimestamp <= block.timestamp) {
-            return OperationState.ReadyForExecution;
-        } else if(op.readyAtTimestamp > 0) {
-            return OperationState.Scheduled;
+
+        if(op.known) {
+            if(op.executed) {
+                state = OperationState.Executed;
+            } else if (block.timestamp < op.readyAtTimestamp) {
+                state = OperationState.Scheduled;
+            } else {
+                state = OperationState.ReadyForExecution;
+            }
         } else {
-            return OperationState.Unknown;
+            state = OperationState.Unknown;
         }
     }
 
@@ -77,9 +79,9 @@ contract ClimberTimelock is AccessControl {
         bytes[] calldata dataElements,
         bytes32 salt
     ) external onlyRole(PROPOSER_ROLE) {
-        require(targets.length > 0 && targets.length < 256);
-        require(targets.length == values.length);
-        require(targets.length == dataElements.length);
+        require(targets.length > 0 && targets.length < 256, "Amount of targets outside boundaries");
+        require(targets.length == values.length, "Amount of values does not match amount of targets");
+        require(targets.length == dataElements.length, "Amount of data elements does not match amount of targets");
 
         bytes32 id = getOperationId(targets, values, dataElements, salt);
         require(getOperationState(id) == OperationState.Unknown, "Operation already known");
@@ -96,8 +98,8 @@ contract ClimberTimelock is AccessControl {
         bytes32 salt
     ) external payable {
         require(targets.length > 0, "Must provide at least one target");
-        require(targets.length == values.length);
-        require(targets.length == dataElements.length);
+        require(targets.length == values.length, "Amount of values does not match amount of targets");
+        require(targets.length == dataElements.length, "Amount of data elements does not match amount of targets");
 
         bytes32 id = getOperationId(targets, values, dataElements, salt);
 
@@ -105,7 +107,7 @@ contract ClimberTimelock is AccessControl {
             targets[i].functionCallWithValue(dataElements[i], values[i]);
         }
         
-        require(getOperationState(id) == OperationState.ReadyForExecution);
+        require(getOperationState(id) == OperationState.ReadyForExecution, "Operation not ready for execution");
         operations[id].executed = true;
     }
 
