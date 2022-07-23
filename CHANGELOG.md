@@ -1,5 +1,14 @@
 # Changelog
 
+## v2.3.0
+
+- Migrate from Waffle to Hardhat Chai Matchers (following [this guide](https://hardhat.org/hardhat-chai-matchers/docs/migrate-from-waffle))
+- Update and pin dependencies
+- Change final assertion in Puppet challenge [following PR#9](https://github.com/tinchoabbate/damn-vulnerable-defi/pull/9).
+- Remove unnecessary `await`s in The Rewarder challenge [following PR#12](https://github.com/tinchoabbate/damn-vulnerable-defi/pull/12)
+- Update WETH9 to Solidity 0.8.0 [following PR#5](https://github.com/tinchoabbate/damn-vulnerable-defi/pull/5)
+- Change timestamp comparison in `ClimberTimelock` contract [following PR#16](https://github.com/tinchoabbate/damn-vulnerable-defi/pull/16)
+
 ## v2.2.0
 
 - Change name of challenge "Junior Miners" to "Safe Miners".

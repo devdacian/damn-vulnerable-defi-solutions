@@ -53,7 +53,7 @@ contract ClimberTimelock is AccessControl {
         
         if(op.executed) {
             return OperationState.Executed;
-        } else if(op.readyAtTimestamp >= block.timestamp) {
+        } else if(op.readyAtTimestamp <= block.timestamp) {
             return OperationState.ReadyForExecution;
         } else if(op.readyAtTimestamp > 0) {
             return OperationState.Scheduled;
