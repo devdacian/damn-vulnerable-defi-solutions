@@ -2,7 +2,7 @@ const { ethers } = require('hardhat');
 const { expect } = require('chai');
 
 describe('[Challenge] Naive receiver', function () {
-    let deployer, user, attacker;
+    let deployer, user, player;
 
     // Pool has 1000 ETH in balance
     const ETHER_IN_POOL = ethers.utils.parseEther('1000');
@@ -12,7 +12,7 @@ describe('[Challenge] Naive receiver', function () {
 
     before(async function () {
         /** SETUP SCENARIO - NO NEED TO CHANGE ANYTHING HERE */
-        [deployer, user, attacker] = await ethers.getSigners();
+        [deployer, user, player] = await ethers.getSigners();
 
         const LenderPoolFactory = await ethers.getContractFactory('NaiveReceiverLenderPool', deployer);
         const FlashLoanReceiverFactory = await ethers.getContractFactory('FlashLoanReceiver', deployer);

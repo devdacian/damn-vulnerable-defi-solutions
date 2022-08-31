@@ -12,19 +12,19 @@ function calculateTokenToEthInputPrice(tokensSold, tokensInReserve, etherInReser
 }
 
 describe('[Challenge] Puppet', function () {
-    let deployer, attacker;
+    let deployer, player;
 
     // Uniswap exchange will start with 10 DVT and 10 ETH in liquidity
     const UNISWAP_INITIAL_TOKEN_RESERVE = ethers.utils.parseEther('10');
     const UNISWAP_INITIAL_ETH_RESERVE = ethers.utils.parseEther('10');
 
-    const ATTACKER_INITIAL_TOKEN_BALANCE = ethers.utils.parseEther('1000');
-    const ATTACKER_INITIAL_ETH_BALANCE = ethers.utils.parseEther('25');
+    const PLAYER_INITIAL_TOKEN_BALANCE = ethers.utils.parseEther('1000');
+    const PLAYER_INITIAL_ETH_BALANCE = ethers.utils.parseEther('25');
     const POOL_INITIAL_TOKEN_BALANCE = ethers.utils.parseEther('100000')
 
     before(async function () {
         /** SETUP SCENARIO - NO NEED TO CHANGE ANYTHING HERE */  
-        [deployer, attacker] = await ethers.getSigners();
+        [deployer, player] = await ethers.getSigners();
 
         const UniswapExchangeFactory = new ethers.ContractFactory(exchangeJson.abi, exchangeJson.evm.bytecode, deployer);
         const UniswapFactoryFactory = new ethers.ContractFactory(factoryJson.abi, factoryJson.evm.bytecode, deployer);
@@ -33,12 +33,12 @@ describe('[Challenge] Puppet', function () {
         const PuppetPoolFactory = await ethers.getContractFactory('PuppetPool', deployer);
 
         await ethers.provider.send("hardhat_setBalance", [
-            attacker.address,
+            player.address,
             "0x15af1d78b58c40000", // 25 ETH
         ]);
         expect(
-            await ethers.provider.getBalance(attacker.address)
-        ).to.equal(ATTACKER_INITIAL_ETH_BALANCE);
+            await ethers.provider.getBalance(player.address)
+        ).to.equal(PLAYER_INITIAL_ETH_BALANCE);
 
         // Deploy token to be traded in Uniswap
         this.token = await DamnValuableTokenFactory.deploy();
@@ -87,8 +87,8 @@ describe('[Challenge] Puppet', function () {
             )
         );
         
-        // Setup initial token balances of pool and attacker account
-        await this.token.transfer(attacker.address, ATTACKER_INITIAL_TOKEN_BALANCE);
+        // Setup initial token balances of pool and player accounts
+        await this.token.transfer(player.address, PLAYER_INITIAL_TOKEN_BALANCE);
         await this.token.transfer(this.lendingPool.address, POOL_INITIAL_TOKEN_BALANCE);
 
         // Ensure correct setup of pool. For example, to borrow 1 need to deposit 2
@@ -108,13 +108,13 @@ describe('[Challenge] Puppet', function () {
     after(async function () {
         /** SUCCESS CONDITIONS */
 
-        // Attacker has taken all tokens from the pool        
+        // Player has taken all tokens from the pool        
         expect(
             await this.token.balanceOf(this.lendingPool.address)
         ).to.be.eq('0');
 
         expect(
-            await this.token.balanceOf(attacker.address)
+            await this.token.balanceOf(player.address)
         ).to.be.gte(POOL_INITIAL_TOKEN_BALANCE);
     });
 });

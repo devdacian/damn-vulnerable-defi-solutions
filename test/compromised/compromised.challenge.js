@@ -9,13 +9,13 @@ describe('Compromised challenge', function () {
         '0x81A5D6E50C214044bE44cA0CB057fe119097850c'
     ];
 
-    let deployer, attacker;
+    let deployer, player;
     const EXCHANGE_INITIAL_ETH_BALANCE = ethers.utils.parseEther('9990');
     const INITIAL_NFT_PRICE = ethers.utils.parseEther('999');
 
     before(async function () {
         /** SETUP SCENARIO - NO NEED TO CHANGE ANYTHING HERE */
-        [deployer, attacker] = await ethers.getSigners();
+        [deployer, player] = await ethers.getSigners();
 
         const ExchangeFactory = await ethers.getContractFactory('Exchange', deployer);
         const DamnValuableNFTFactory = await ethers.getContractFactory('DamnValuableNFT', deployer);
@@ -33,13 +33,13 @@ describe('Compromised challenge', function () {
             ).to.equal(ethers.utils.parseEther('2'));
         }
 
-        // Attacker starts with 0.1 ETH in balance
+        // Player starts with 0.1 ETH in balance
         await ethers.provider.send("hardhat_setBalance", [
-            attacker.address,
+            player.address,
             "0x16345785d8a0000", // 0.1 ETH
         ]);
         expect(
-            await ethers.provider.getBalance(attacker.address)
+            await ethers.provider.getBalance(player.address)
         ).to.equal(ethers.utils.parseEther('0.1'));
 
         // Deploy the oracle and setup the trusted sources with initial prices
@@ -71,14 +71,14 @@ describe('Compromised challenge', function () {
             await ethers.provider.getBalance(this.exchange.address)
         ).to.be.eq('0');
         
-        // Attacker's ETH balance must have significantly increased
+        // Player's ETH balance must have significantly increased
         expect(
-            await ethers.provider.getBalance(attacker.address)
+            await ethers.provider.getBalance(player.address)
         ).to.be.gt(EXCHANGE_INITIAL_ETH_BALANCE);
         
-        // Attacker must not own any NFT
+        // Player must not own any NFT
         expect(
-            await this.nftToken.balanceOf(attacker.address)
+            await this.nftToken.balanceOf(player.address)
         ).to.be.eq('0');
 
         // NFT price shouldn't have changed

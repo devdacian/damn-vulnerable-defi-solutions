@@ -2,13 +2,13 @@ const { ethers } = require('hardhat');
 const { expect } = require('chai');
 
 describe('[Challenge] Truster', function () {
-    let deployer, attacker;
+    let deployer, player;
 
     const TOKENS_IN_POOL = ethers.utils.parseEther('1000000');
 
     before(async function () {
         /** SETUP SCENARIO - NO NEED TO CHANGE ANYTHING HERE */
-        [deployer, attacker] = await ethers.getSigners();
+        [deployer, player] = await ethers.getSigners();
 
         const DamnValuableToken = await ethers.getContractFactory('DamnValuableToken', deployer);
         const TrusterLenderPool = await ethers.getContractFactory('TrusterLenderPool', deployer);
@@ -23,7 +23,7 @@ describe('[Challenge] Truster', function () {
         ).to.equal(TOKENS_IN_POOL);
 
         expect(
-            await this.token.balanceOf(attacker.address)
+            await this.token.balanceOf(player.address)
         ).to.equal('0');
     });
 
@@ -34,9 +34,9 @@ describe('[Challenge] Truster', function () {
     after(async function () {
         /** SUCCESS CONDITIONS */
 
-        // Attacker has taken all tokens from the pool
+        // Player has taken all tokens from the pool
         expect(
-            await this.token.balanceOf(attacker.address)
+            await this.token.balanceOf(player.address)
         ).to.equal(TOKENS_IN_POOL);
         expect(
             await this.token.balanceOf(this.pool.address)

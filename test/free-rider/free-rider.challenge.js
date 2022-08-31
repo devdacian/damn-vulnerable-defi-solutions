@@ -7,7 +7,7 @@ const { ethers } = require('hardhat');
 const { expect } = require('chai');
 
 describe('[Challenge] Free Rider', function () {
-    let deployer, attacker, buyer;
+    let deployer, player, buyer;
 
     // The NFT marketplace will have 6 tokens, at 15 ETH each
     const NFT_PRICE = ethers.utils.parseEther('15')
@@ -23,11 +23,11 @@ describe('[Challenge] Free Rider', function () {
 
     before(async function () {
         /** SETUP SCENARIO - NO NEED TO CHANGE ANYTHING HERE */
-        [deployer, attacker, buyer] = await ethers.getSigners();
+        [deployer, player, buyer] = await ethers.getSigners();
 
-        // Attacker starts with little ETH balance
+        // Player starts with little ETH balance
         await ethers.provider.send("hardhat_setBalance", [
-            attacker.address,
+            player.address,
             "0x6f05b59d3b20000", // 0.5 ETH
         ]);
 
@@ -95,9 +95,9 @@ describe('[Challenge] Free Rider', function () {
         );
         expect(await this.marketplace.amountOfOffers()).to.be.eq('6');
 
-        // Deploy buyer's contract, adding the attacker as the partner
+        // Deploy buyer's contract, adding the player as the partner
         this.buyerContract = await (await ethers.getContractFactory('FreeRiderBuyer', buyer)).deploy(
-            attacker.address, // partner
+            player.address, // partner
             this.nft.address, 
             { value: BUYER_PAYOUT }
         );
@@ -110,8 +110,8 @@ describe('[Challenge] Free Rider', function () {
     after(async function () {
         /** SUCCESS CONDITIONS */
 
-        // Attacker must have earned all ETH from the payout
-        expect(await ethers.provider.getBalance(attacker.address)).to.be.gt(BUYER_PAYOUT);
+        // Player must have earned all ETH from the payout
+        expect(await ethers.provider.getBalance(player.address)).to.be.gt(BUYER_PAYOUT);
         expect(await ethers.provider.getBalance(this.buyerContract.address)).to.be.eq('0');
 
         // The buyer extracts all NFTs from its associated contract

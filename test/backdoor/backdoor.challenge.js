@@ -2,13 +2,13 @@ const { ethers } = require('hardhat');
 const { expect } = require('chai');
 
 describe('[Challenge] Backdoor', function () {
-    let deployer, users, attacker;
+    let deployer, users, player;
 
     const AMOUNT_TOKENS_DISTRIBUTED = ethers.utils.parseEther('40');
 
     before(async function () {
         /** SETUP SCENARIO - NO NEED TO CHANGE ANYTHING HERE */
-        [deployer, alice, bob, charlie, david, attacker] = await ethers.getSigners();
+        [deployer, alice, bob, charlie, david, player] = await ethers.getSigners();
         users = [alice.address, bob.address, charlie.address, david.address]
 
         // Deploy Gnosis Safe master copy and factory contracts
@@ -53,9 +53,9 @@ describe('[Challenge] Backdoor', function () {
             ).to.be.false;
         }
 
-        // Attacker must have taken all tokens
+        // Player must have taken all tokens
         expect(
-            await this.token.balanceOf(attacker.address)
+            await this.token.balanceOf(player.address)
         ).to.eq(AMOUNT_TOKENS_DISTRIBUTED);
     });
 });

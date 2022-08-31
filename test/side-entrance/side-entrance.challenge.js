@@ -3,20 +3,20 @@ const { expect } = require('chai');
 
 describe('[Challenge] Side entrance', function () {
 
-    let deployer, attacker;
+    let deployer, player;
 
     const ETHER_IN_POOL = ethers.utils.parseEther('1000');
 
     before(async function () {
         /** SETUP SCENARIO - NO NEED TO CHANGE ANYTHING HERE */
-        [deployer, attacker] = await ethers.getSigners();
+        [deployer, player] = await ethers.getSigners();
 
         const SideEntranceLenderPoolFactory = await ethers.getContractFactory('SideEntranceLenderPool', deployer);
         this.pool = await SideEntranceLenderPoolFactory.deploy();
         
         await this.pool.deposit({ value: ETHER_IN_POOL });
 
-        this.attackerInitialEthBalance = await ethers.provider.getBalance(attacker.address);
+        this.playerInitialEthBalance = await ethers.provider.getBalance(player.address);
 
         expect(
             await ethers.provider.getBalance(this.pool.address)
@@ -33,11 +33,11 @@ describe('[Challenge] Side entrance', function () {
             await ethers.provider.getBalance(this.pool.address)
         ).to.be.equal('0');
         
-        // Not checking exactly how much is the final balance of the attacker,
-        // because it'll depend on how much gas the attacker spends in the attack
+        // Not checking exactly how much is the final balance of the player,
+        // because it'll depend on how much gas the player spends in the attack
         // If there were no gas costs, it would be balance before attack + ETHER_IN_POOL
         expect(
-            await ethers.provider.getBalance(attacker.address)
-        ).to.be.gt(this.attackerInitialEthBalance);
+            await ethers.provider.getBalance(player.address)
+        ).to.be.gt(this.playerInitialEthBalance);
     });
 });

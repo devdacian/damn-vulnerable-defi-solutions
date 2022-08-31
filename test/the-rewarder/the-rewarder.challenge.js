@@ -3,7 +3,7 @@ const { expect } = require('chai');
 
 describe('[Challenge] The rewarder', function () {
 
-    let deployer, alice, bob, charlie, david, attacker;
+    let deployer, alice, bob, charlie, david, player;
     let users;
 
     const TOKENS_IN_LENDER_POOL = ethers.utils.parseEther('1000000'); // 1 million tokens
@@ -11,7 +11,7 @@ describe('[Challenge] The rewarder', function () {
     before(async function () {
         /** SETUP SCENARIO - NO NEED TO CHANGE ANYTHING HERE */
 
-        [deployer, alice, bob, charlie, david, attacker] = await ethers.getSigners();
+        [deployer, alice, bob, charlie, david, player] = await ethers.getSigners();
         users = [alice, bob, charlie, david];
 
         const FlashLoanerPoolFactory = await ethers.getContractFactory('FlashLoanerPool', deployer);
@@ -55,8 +55,8 @@ describe('[Challenge] The rewarder', function () {
         }
         expect(await this.rewardToken.totalSupply()).to.be.eq(ethers.utils.parseEther('100'));
 
-        // Attacker starts with zero DVT tokens in balance
-        expect(await this.liquidityToken.balanceOf(attacker.address)).to.eq('0');
+        // Player starts with zero DVT tokens in balance
+        expect(await this.liquidityToken.balanceOf(player.address)).to.eq('0');
         
         // Two rounds should have occurred so far
         expect(
@@ -86,15 +86,15 @@ describe('[Challenge] The rewarder', function () {
             expect(delta).to.be.lt(ethers.utils.parseUnits('1', 16))
         }
         
-        // Rewards must have been issued to the attacker account
+        // Rewards must have been issued to the player account
         expect(await this.rewardToken.totalSupply()).to.be.gt(ethers.utils.parseEther('100'));
-        let rewards = await this.rewardToken.balanceOf(attacker.address);
+        let rewards = await this.rewardToken.balanceOf(player.address);
 
         // The amount of rewards earned should be really close to 100 tokens
         let delta = ethers.utils.parseEther('100').sub(rewards);
         expect(delta).to.be.lt(ethers.utils.parseUnits('1', 17));
 
-        // Attacker finishes with zero DVT tokens in balance
-        expect(await this.liquidityToken.balanceOf(attacker.address)).to.eq('0');
+        // Player finishes with zero DVT tokens in balance
+        expect(await this.liquidityToken.balanceOf(player.address)).to.eq('0');
     });
 });

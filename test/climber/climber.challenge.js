@@ -2,21 +2,21 @@ const { ethers, upgrades } = require('hardhat');
 const { expect } = require('chai');
 
 describe('[Challenge] Climber', function () {
-    let deployer, proposer, sweeper, attacker;
+    let deployer, proposer, sweeper, player;
 
     // Vault starts with 10 million tokens
     const VAULT_TOKEN_BALANCE = ethers.utils.parseEther('10000000');
 
     before(async function () {
         /** SETUP SCENARIO - NO NEED TO CHANGE ANYTHING HERE */
-        [deployer, proposer, sweeper, attacker] = await ethers.getSigners();
+        [deployer, proposer, sweeper, player] = await ethers.getSigners();
 
         await ethers.provider.send("hardhat_setBalance", [
-            attacker.address,
+            player.address,
             "0x16345785d8a0000", // 0.1 ETH
         ]);
         expect(
-            await ethers.provider.getBalance(attacker.address)
+            await ethers.provider.getBalance(player.address)
         ).to.equal(ethers.utils.parseEther('0.1'));
         
         // Deploy the vault behind a proxy using the UUPS pattern,
@@ -58,6 +58,6 @@ describe('[Challenge] Climber', function () {
     after(async function () {
         /** SUCCESS CONDITIONS */
         expect(await this.token.balanceOf(this.vault.address)).to.eq('0');
-        expect(await this.token.balanceOf(attacker.address)).to.eq(VAULT_TOKEN_BALANCE);
+        expect(await this.token.balanceOf(player.address)).to.eq(VAULT_TOKEN_BALANCE);
     });
 });
