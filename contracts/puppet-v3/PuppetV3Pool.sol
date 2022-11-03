@@ -7,6 +7,7 @@ import "@uniswap/v3-periphery/contracts/libraries/OracleLibrary.sol";
 
 /**
  * @title PuppetV3Pool
+ * @notice A simple lending pool using Uniswap v3 as TWAP oracle.
  * @author Damn Vulnerable DeFi (https://damnvulnerabledefi.xyz)
  */
 contract PuppetV3Pool {
@@ -20,9 +21,8 @@ contract PuppetV3Pool {
         
     event Borrowed(
         address indexed borrower,
-        uint256 depositRequired,
-        uint256 borrowAmount,
-        uint256 timestamp
+        uint256 depositAmount,
+        uint256 borrowAmount
     );
 
     constructor (
@@ -38,7 +38,7 @@ contract PuppetV3Pool {
     /**
      * @notice Allows borrowing `borrowAmount` of tokens by first depositing three times their value in WETH.
      *         Sender must have approved enough WETH in advance.
-     *         Calculations assume that WETH and borrowed token have the same amount of decimals.
+     *         Calculations assume that WETH and the borrowed token have the same number of decimals.
      * @param borrowAmount amount of tokens the user intends to borrow
      */
     function borrow(uint256 borrowAmount) external {
@@ -47,7 +47,7 @@ contract PuppetV3Pool {
         // Calculate how much WETH the user must deposit
         uint256 depositOfWETHRequired = calculateDepositOfWETHRequired(borrowAmount);
         
-        // Take the WETH
+        // Pull the WETH
         weth.transferFrom(msg.sender, address(this), depositOfWETHRequired);
 
         // internal accounting
@@ -55,7 +55,7 @@ contract PuppetV3Pool {
 
         require(token.transfer(msg.sender, borrowAmount), "Token transfer failed");
 
-        emit Borrowed(msg.sender, depositOfWETHRequired, borrowAmount, block.timestamp);
+        emit Borrowed(msg.sender, depositOfWETHRequired, borrowAmount);
     }
 
     function calculateDepositOfWETHRequired(uint256 amount) public view returns (uint256) {
@@ -74,6 +74,6 @@ contract PuppetV3Pool {
     }
 
     function _toUint128(uint256 amount) private pure returns (uint128 n) {
-        require((n = uint128(amount)) == amount, "Amount too large");
+        require(amount == (n = uint128(amount)));
     }
 }
