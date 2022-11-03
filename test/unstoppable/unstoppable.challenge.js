@@ -38,12 +38,12 @@ describe('[Challenge] Unstoppable', function () {
          await this.receiverContract.executeFlashLoan(10);
     });
 
-    it('Exploit', async function () {
-        /** CODE YOUR EXPLOIT HERE */
+    it('Execution', async function () {
+        /** CODE YOUR SOLUTION HERE */
     });
 
     after(async function () {
-        /** SUCCESS CONDITIONS */
+        /** SUCCESS CONDITIONS - NO NEED TO CHANGE ANYTHING HERE */
 
         // It is no longer possible to execute flash loans
         await expect(

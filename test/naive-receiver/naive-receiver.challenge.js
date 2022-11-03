@@ -29,12 +29,12 @@ describe('[Challenge] Naive receiver', function () {
         expect(await ethers.provider.getBalance(this.receiver.address)).to.be.equal(ETHER_IN_RECEIVER);
     });
 
-    it('Exploit', async function () {
-        /** CODE YOUR EXPLOIT HERE */   
+    it('Execution', async function () {
+        /** CODE YOUR SOLUTION HERE */   
     });
 
     after(async function () {
-        /** SUCCESS CONDITIONS */
+        /** SUCCESS CONDITIONS - NO NEED TO CHANGE ANYTHING HERE */
 
         // All ETH has been drained from the receiver
         expect(

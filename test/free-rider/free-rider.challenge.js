@@ -103,12 +103,12 @@ describe('[Challenge] Free Rider', function () {
         );
     });
 
-    it('Exploit', async function () {
-        /** CODE YOUR EXPLOIT HERE */
+    it('Execution', async function () {
+        /** CODE YOUR SOLUTION HERE */
     });
 
     after(async function () {
-        /** SUCCESS CONDITIONS */
+        /** SUCCESS CONDITIONS - NO NEED TO CHANGE ANYTHING HERE */
 
         // Player must have earned all ETH from the payout
         expect(await ethers.provider.getBalance(player.address)).to.be.gt(BUYER_PAYOUT);

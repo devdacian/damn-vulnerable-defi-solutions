@@ -51,12 +51,12 @@ describe('[Challenge] Climber', function () {
         await this.token.transfer(this.vault.address, VAULT_TOKEN_BALANCE);
     });
 
-    it('Exploit', async function () {        
-        /** CODE YOUR EXPLOIT HERE */
+    it('Execution', async function () {        
+        /** CODE YOUR SOLUTION HERE */
     });
 
     after(async function () {
-        /** SUCCESS CONDITIONS */
+        /** SUCCESS CONDITIONS - NO NEED TO CHANGE ANYTHING HERE */
         expect(await this.token.balanceOf(this.vault.address)).to.eq('0');
         expect(await this.token.balanceOf(player.address)).to.eq(VAULT_TOKEN_BALANCE);
     });

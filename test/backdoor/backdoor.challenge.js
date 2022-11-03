@@ -35,12 +35,12 @@ describe('[Challenge] Backdoor', function () {
         await this.token.transfer(this.walletRegistry.address, AMOUNT_TOKENS_DISTRIBUTED);
     });
 
-    it('Exploit', async function () {
-        /** CODE YOUR EXPLOIT HERE */
+    it('Execution', async function () {
+        /** CODE YOUR SOLUTION HERE */
     });
 
     after(async function () {
-        /** SUCCESS CONDITIONS */
+        /** SUCCESS CONDITIONS - NO NEED TO CHANGE ANYTHING HERE */
         for (let i = 0; i < users.length; i++) {
             let wallet = await this.walletRegistry.wallets(users[i]);
             
@@ -53,7 +53,7 @@ describe('[Challenge] Backdoor', function () {
             ).to.be.false;
         }
 
-        // Player must have taken all tokens
+        // Player must own all tokens
         expect(
             await this.token.balanceOf(player.address)
         ).to.eq(AMOUNT_TOKENS_DISTRIBUTED);

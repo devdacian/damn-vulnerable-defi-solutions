@@ -27,12 +27,12 @@ describe('[Challenge] Truster', function () {
         ).to.equal('0');
     });
 
-    it('Exploit', async function () {
-        /** CODE YOUR EXPLOIT HERE  */
+    it('Execution', async function () {
+        /** CODE YOUR SOLUTION HERE */
     });
 
     after(async function () {
-        /** SUCCESS CONDITIONS */
+        /** SUCCESS CONDITIONS - NO NEED TO CHANGE ANYTHING HERE */
 
         // Player has taken all tokens from the pool
         expect(
