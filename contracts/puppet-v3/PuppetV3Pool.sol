@@ -2,7 +2,6 @@
 pragma solidity =0.7.6;
 
 import "@uniswap/v3-core/contracts/interfaces/IERC20Minimal.sol";
-import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 import "@uniswap/v3-periphery/contracts/libraries/OracleLibrary.sol";
 
@@ -12,10 +11,10 @@ import "@uniswap/v3-periphery/contracts/libraries/OracleLibrary.sol";
  */
 contract PuppetV3Pool {
 
-    IERC20Minimal               public immutable weth;
-    IERC20Minimal               public immutable token;
-    IUniswapV3Pool              public immutable uniswapV3Pool;
-    IUniswapV3Factory           public immutable uniswapV3Factory;
+    IERC20Minimal public immutable weth;
+    IERC20Minimal public immutable token;
+    IUniswapV3Pool public immutable uniswapV3Pool;
+    uint256 public constant DEPOSIT_FACTOR = 3;
     
     mapping(address => uint256) public deposits;
         
@@ -29,13 +28,11 @@ contract PuppetV3Pool {
     constructor (
         IERC20Minimal _weth,
         IERC20Minimal _token,
-        IUniswapV3Pool _uniswapV3Pool,
-        IUniswapV3Factory _uniswapV3Factory
+        IUniswapV3Pool _uniswapV3Pool
     ) {
         weth = _weth;
         token = _token;
         uniswapV3Pool = _uniswapV3Pool;
-        uniswapV3Factory = _uniswapV3Factory;
     }
 
     /**
@@ -62,7 +59,8 @@ contract PuppetV3Pool {
     }
 
     function calculateDepositOfWETHRequired(uint256 amount) public view returns (uint256) {
-        return _getOracleQuote(_toUint128(amount)) * 3;
+        uint256 quote = _getOracleQuote(_toUint128(amount));
+        return quote * DEPOSIT_FACTOR;
     }
 
     function _getOracleQuote(uint128 amount) private view returns (uint256) {
