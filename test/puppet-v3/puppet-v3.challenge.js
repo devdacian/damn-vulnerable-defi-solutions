@@ -25,7 +25,7 @@ describe('[Challenge] Puppet v3', function () {
     /** SET NODE URL HERE */
     const MAINNET_FORKING_URL = "";
 
-    // Uniswap v3 exchange starts with 100 tokens and 100 WETH in liquidity
+    // Initial liquidity amounts for Uniswap v3 exchange
     const UNISWAP_INITIAL_TOKEN_LIQUIDITY = 100n * 10n ** 18n;
     const UNISWAP_INITIAL_WETH_LIQUIDITY = 100n * 10n ** 18n;
 
@@ -43,13 +43,13 @@ describe('[Challenge] Puppet v3', function () {
             forking: { jsonRpcUrl: MAINNET_FORKING_URL, blockNumber: 15450164 }
         }]);
 
-        // Initialize player account with 10 ETH in balance
+        // Initialize player account
         // using private key of account #2 in Hardhat's node
         player = new ethers.Wallet("0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d", ethers.provider);
         await setBalance(player.address, PLAYER_INITIAL_ETH_BALANCE);
         expect(await ethers.provider.getBalance(player.address)).to.eq(PLAYER_INITIAL_ETH_BALANCE);
 
-        // Initialize deployer account with 200 ETH in balance
+        // Initialize deployer account
         // using private key of account #1 in Hardhat's node
         deployer = new ethers.Wallet("0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80", ethers.provider);
         await setBalance(deployer.address, DEPLOYER_INITIAL_ETH_BALANCE);
