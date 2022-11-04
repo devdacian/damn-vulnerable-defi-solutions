@@ -29,8 +29,8 @@ describe('[Challenge] Puppet v3', function () {
     const UNISWAP_INITIAL_TOKEN_LIQUIDITY = 100n * 10n ** 18n;
     const UNISWAP_INITIAL_WETH_LIQUIDITY = 100n * 10n ** 18n;
 
-    const PLAYER_INITIAL_TOKEN_BALANCE = 1n * 10n ** 18n;
-    const PLAYER_INITIAL_ETH_BALANCE = 10n * 10n ** 18n;
+    const PLAYER_INITIAL_TOKEN_BALANCE = 110n * 10n ** 18n;
+    const PLAYER_INITIAL_ETH_BALANCE = 1n * 10n ** 18n;
     const DEPLOYER_INITIAL_ETH_BALANCE = 200n * 10n ** 18n;
 
     const LENDING_POOL_INITIAL_TOKEN_BALANCE = 1000000n * 10n ** 18n;
@@ -70,7 +70,7 @@ describe('[Challenge] Puppet v3', function () {
         
         // Create the Uniswap v3 exchange
         this.uniswapPositionManager = new ethers.Contract("0xC36442b4a4522E871399CD717aBDD847Ab11FE88", positionManagerJson.abi, deployer);
-        const FEE = 3000;
+        const FEE = 3000; // 0.3%
         await this.uniswapPositionManager.createAndInitializePoolIfNecessary(
             this.weth.address,  // token0
             this.token.address, // token1
@@ -107,8 +107,8 @@ describe('[Challenge] Puppet v3', function () {
             )
         );
 
-        // 10 days pass
-        await time.increase(10 * 24 * 60 * 60);
+        // 60 minutes pass
+        await time.increase(60 * 60);
 
         // Setup initial token balances of lending pool and player
         await this.token.transfer(player.address, PLAYER_INITIAL_TOKEN_BALANCE);
@@ -136,13 +136,13 @@ describe('[Challenge] Puppet v3', function () {
     after(async function () {
         /** SUCCESS CONDITIONS - NO NEED TO CHANGE ANYTHING HERE */
 
-        // Player must have taken all tokens from the pool
+        // Player has taken all tokens from the pool        
         expect(
             await this.token.balanceOf(this.lendingPool.address)
         ).to.be.eq('0');
 
         expect(
             await this.token.balanceOf(player.address)
-        ).to.be.gte(POOL_INITIAL_TOKEN_BALANCE);
+        ).to.be.gte(LENDING_POOL_INITIAL_TOKEN_BALANCE);
     });
 });
