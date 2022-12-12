@@ -2,6 +2,7 @@
 
 ## v3.0.0
 
+- Two new levels: Puppet v3 and ABI Smuggling
 - Heavy rework of Safe Miners challenge. Now called "Wallet mining".
 - Migrate from Waffle to Hardhat Chai Matchers (following [this guide](https://hardhat.org/hardhat-chai-matchers/docs/migrate-from-waffle))
 - Change final assertion in Puppet challenge [following PR#9](https://github.com/tinchoabbate/damn-vulnerable-defi/pull/9).
