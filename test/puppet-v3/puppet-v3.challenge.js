@@ -146,7 +146,7 @@ describe('[Challenge] Puppet v3', function () {
         // Block timestamp must not have changed too much
         expect(
             (await ethers.provider.getBlock('latest')).timestamp - this.initialBlockTimestamp
-        ).to.be.lt(110, 'Passed too much time');
+        ).to.be.lt(115, 'Too much time passed');
 
         // Player has taken all tokens out of the pool        
         expect(

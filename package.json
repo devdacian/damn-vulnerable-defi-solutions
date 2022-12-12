@@ -19,6 +19,7 @@
     "backdoor": "yarn hardhat test test/backdoor/backdoor.challenge.js",
     "climber": "yarn hardhat test test/climber/climber.challenge.js",
     "wallet-mining": "yarn hardhat test test/wallet-mining/wallet-mining.challenge.js",
+    "abi-smuggling": "yarn harhdat test test/abi-smuggling/abi-smuggling.challenge.js",
     "puppet-v3": "yarn hardhat test test/puppet-v3/puppet-v3.challenge.js"
   },
   "devDependencies": {
@@ -34,8 +35,8 @@
     "@uniswap/v3-periphery": "1.4.1",
     "bignumber.js": "9.1.0",
     "chai": "4.3.6",
-    "ethers": "5.7.0",
-    "hardhat": "2.11.1",
+    "ethers": "5.7.2",
+    "hardhat": "2.12.4",
     "hardhat-dependency-compiler": "1.1.3"
   }
 }

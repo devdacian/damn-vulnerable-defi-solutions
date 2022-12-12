@@ -16,7 +16,7 @@ describe('[Challenge] Wallet mining', function () {
 
         // Deploy authorizer with the corresponding proxy
         this.authorizer = await upgrades.deployProxy(
-            await ethers.getContractFactory('Authorizer', deployer),
+            await ethers.getContractFactory('AuthorizerUpgradeable', deployer),
             [ [ guardian.address ], [ DEPOSIT_ADDRESS ] ], // initialization data
             { kind: 'uups' }
         );

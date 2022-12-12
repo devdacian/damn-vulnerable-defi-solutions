@@ -6,11 +6,11 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 /**
-  * @title Authorizer
+  * @title AuthorizerUpgradeable
   * @author Damn Vulnerable DeFi (https://damnvulnerabledefi.xyz)
   * @dev To be deployed behind a proxy following the UUPS pattern. Only the owner can upgrade.
  */
-contract Authorizer is Initializable, OwnableUpgradeable, UUPSUpgradeable {
+contract AuthorizerUpgradeable is Initializable, OwnableUpgradeable, UUPSUpgradeable {
 
     mapping (address => mapping (address => bool)) private guardians;
 
