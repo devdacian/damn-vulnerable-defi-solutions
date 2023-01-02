@@ -17,13 +17,16 @@ abstract contract ExecutionAuthorizer is ReentrancyGuard {
     mapping(bytes32 => bool) public permissions;
 
     error NotAllowed();
+    error AlreadyInitialized();
     
     /**
-     * @notice Performs an arbitrary function call on a target contract, if the caller is authorized to do so.
+     * @notice Allows first caller to set permissions for a set of action identifiers
      * @param ids array of action identifiers
      */
     function setPermissions(bytes32[] memory ids) external {
-        require(!initialized, "Already set permissions");
+        if(initialized)
+            revert AlreadyInitialized();
+            
         for (uint256 i = 0; i < ids.length; ) {
             unchecked {
                 permissions[ids[i]] = true;
