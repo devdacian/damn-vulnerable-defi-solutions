@@ -2417,6 +2417,11 @@ signal-exit@^3.0.2:
   resolved "https://registry.yarnpkg.com/signal-exit/-/signal-exit-3.0.7.tgz#a9a1767f8af84155114eaabd73f99273c8f59ad9"
   integrity sha512-wnD2ZE+l+SPC/uoS0vXeE9L1+0wuaMqKlfz9AMUo38JsyLSBWSFcHR1Rri62LZc12vLr1gb3jl7iwQhgwpAbGQ==
 
+solady@^0.0.67:
+  version "0.0.67"
+  resolved "https://registry.yarnpkg.com/solady/-/solady-0.0.67.tgz#3f2a1a48600bf91cbde46b09060f416190f034d1"
+  integrity sha512-5HttEzCI0C8Mf6FBvmOYwswyRF8mkIM37BekYmXEL63Blst0eJKWlfTJHjbyGrXriqCr1y7jqFGNUrjOjhMX2g==
+
 solc@0.7.3:
   version "0.7.3"
   resolved "https://registry.yarnpkg.com/solc/-/solc-0.7.3.tgz#04646961bd867a744f63d2b4e3c0701ffdc7d78a"

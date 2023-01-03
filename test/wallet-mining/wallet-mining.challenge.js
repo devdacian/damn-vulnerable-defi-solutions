@@ -18,29 +18,29 @@ describe('[Challenge] Wallet mining', function () {
         this.authorizer = await upgrades.deployProxy(
             await ethers.getContractFactory('AuthorizerUpgradeable', deployer),
             [ [ guardian.address ], [ DEPOSIT_ADDRESS ] ], // initialization data
-            { kind: 'uups' }
+            { kind: 'uups', initializer: 'init' }
         );
         
         expect(await this.authorizer.owner()).to.eq(deployer.address);
-        expect(await this.authorizer.isAuthorized(guardian.address, DEPOSIT_ADDRESS)).to.be.true;
-        expect(await this.authorizer.isAuthorized(player.address, DEPOSIT_ADDRESS)).to.be.false;
+        expect(await this.authorizer.can(guardian.address, DEPOSIT_ADDRESS)).to.be.true;
+        expect(await this.authorizer.can(player.address, DEPOSIT_ADDRESS)).to.be.false;
 
-        // Deploy WalletDeployer contract
+        // Deploy Safe Deployer contract
         this.walletDeployer = await (await ethers.getContractFactory('WalletDeployer', deployer)).deploy(
             this.token.address
         );
-        expect(await this.walletDeployer.owner()).to.eq(deployer.address);
-        expect(await this.walletDeployer.token()).to.eq(this.token.address);
+        expect(await this.walletDeployer.chief()).to.eq(deployer.address);
+        expect(await this.walletDeployer.gem()).to.eq(this.token.address);
         
-        // Set Authorizer in WalletDeployer
-        await this.walletDeployer.setAuthorizer(this.authorizer.address);
-        expect(await this.walletDeployer.authorizer()).to.eq(this.authorizer.address);
+        // Set Authorizer in Safe Deployer
+        await this.walletDeployer.rule(this.authorizer.address);
+        expect(await this.walletDeployer.mom()).to.eq(this.authorizer.address);
 
-        await expect(this.walletDeployer.isAuthorized(guardian.address, DEPOSIT_ADDRESS)).not.to.be.reverted;
-        await expect(this.walletDeployer.isAuthorized(player.address, DEPOSIT_ADDRESS)).to.be.reverted;
+        await expect(this.walletDeployer.can(guardian.address, DEPOSIT_ADDRESS)).not.to.be.reverted;
+        await expect(this.walletDeployer.can(player.address, DEPOSIT_ADDRESS)).to.be.reverted;
 
-        // Fund WalletDeployer with tokens
-        this.initialWalletDeployerTokenBalance = (await this.walletDeployer.PAYMENT_AMOUNT()).mul(43);
+        // Fund Safe Deployer with tokens
+        this.initialWalletDeployerTokenBalance = (await this.walletDeployer.pay()).mul(43);
         await this.token.transfer(
             this.walletDeployer.address,
             this.initialWalletDeployerTokenBalance
@@ -48,8 +48,8 @@ describe('[Challenge] Wallet mining', function () {
 
         // Ensure these accounts start empty
         expect(await ethers.provider.getCode(DEPOSIT_ADDRESS)).to.eq('0x');
-        expect(await ethers.provider.getCode(await this.walletDeployer.FACTORY())).to.eq('0x');
-        expect(await ethers.provider.getCode(await this.walletDeployer.MASTER_COPY())).to.eq('0x');
+        expect(await ethers.provider.getCode(await this.walletDeployer.fact())).to.eq('0x');
+        expect(await ethers.provider.getCode(await this.walletDeployer.copy())).to.eq('0x');
 
         // Deposit large amount of DVT tokens to the deposit address
         await this.token.transfer(DEPOSIT_ADDRESS, DEPOSIT_TOKEN_AMOUNT);
@@ -59,7 +59,7 @@ describe('[Challenge] Wallet mining', function () {
         expect(await this.token.balanceOf(this.walletDeployer.address)).eq(
             this.initialWalletDeployerTokenBalance
         );
-        expect(await this.token.balanceOf(player.address)).eq('0');
+        expect(await this.token.balanceOf(player.address)).eq(0);
     });
 
     it('Execution', async function () {
@@ -71,12 +71,12 @@ describe('[Challenge] Wallet mining', function () {
 
         // Factory account must have code
         expect(
-            await ethers.provider.getCode(await this.walletDeployer.FACTORY())
+            await ethers.provider.getCode(await this.walletDeployer.fact())
         ).to.not.eq('0x');
 
         // Master copy account must have code
         expect(
-            await ethers.provider.getCode(await this.walletDeployer.MASTER_COPY())
+            await ethers.provider.getCode(await this.walletDeployer.copy())
         ).to.not.eq('0x');
 
         // Deposit account must have code
@@ -84,7 +84,7 @@ describe('[Challenge] Wallet mining', function () {
             await ethers.provider.getCode(DEPOSIT_ADDRESS)
         ).to.not.eq('0x');
         
-        // Neither the deposit address nor the WalletDeployer contract must hold tokens
+        // The deposit address and the Safe Deployer contract must not hold tokens
         expect(
             await this.token.balanceOf(DEPOSIT_ADDRESS)
         ).to.eq('0');

@@ -16,71 +16,63 @@ interface IGnosisSafeProxyFactory {
  */
 contract WalletDeployer {
     // Addresses of the Gnosis Safe Factory and Master Copy v1.1.1
-    IGnosisSafeProxyFactory public constant FACTORY = IGnosisSafeProxyFactory(0x76E2cFc1F5Fa8F6a5b3fC4c8F4788F0116861F9B);
-    address public constant MASTER_COPY = 0x34CfAC646f301356fAa8B21e94227e3583Fe3F5F;
-    address public immutable owner = msg.sender;
-    address public immutable token;    
-    uint256 public constant PAYMENT_AMOUNT = 1 ether;
+    IGnosisSafeProxyFactory public constant fact = IGnosisSafeProxyFactory(0x76E2cFc1F5Fa8F6a5b3fC4c8F4788F0116861F9B);
+    address public constant copy = 0x34CfAC646f301356fAa8B21e94227e3583Fe3F5F;
+
+    uint256 public constant pay = 1 ether;
+    address public immutable chief = msg.sender;
+    address public immutable gem;
     
-    address public authorizer;
+    address public mom;
 
-    error AuthError();
+    error Nope();
 
-    constructor(address _token) {
-        token = _token;
+    constructor(address _gem) {
+        gem = _gem;
     }
 
     /**
-     * @notice Allows the owner to set an authorizer contract. Can only be called once.
-     * @param _authorizer address of the authorizer contract
+     * @notice Allows the chief to set an authorizer contract. Can only be called once.
      */
-    function setAuthorizer(address _authorizer) external {
-        if(msg.sender != owner || _authorizer == address(0) || authorizer != address(0))
-            revert AuthError();
+    function rule(address _mom) external {
+        if (msg.sender != chief || _mom == address(0) || mom != address(0))
+            revert Nope();
 
-        authorizer = _authorizer;
+        mom = _mom;
     }
 
     /**
      * @notice Allows the caller to deploy a new Safe wallet and receive a payment in return.
      *         If the authorizer is set, the caller must be authorized to execute the deployment.
-     * @param data initialization data to be passed to the Safe wallet
+     * @param wat initialization data to be passed to the Safe wallet
      */
-    function safeDeploy(bytes memory data) external returns (address) {
-        address deploymentAddress = FACTORY.createProxy(MASTER_COPY, data);
+    function drop(bytes memory wat) external returns (address aim) {
+        aim = fact.createProxy(copy, wat);
 
-        if(authorizer != address(0) && !isAuthorized(msg.sender, deploymentAddress))
-            revert AuthError();
+        if (mom != address(0) && !can(msg.sender, aim))
+            revert Nope();
 
-        IERC20(token).transfer(msg.sender, PAYMENT_AMOUNT);
-
-        return deploymentAddress;
+        IERC20(gem).transfer(msg.sender, pay);
     }
 
-    function isAuthorized(address deployer, address target) public view returns (bool) {
+    function can(address usr, address aim) public view returns (bool) {
         assembly {
-            let auth := sload(0)
-            if iszero(extcodesize(auth)) {
+            let _mom := sload(0)
+            if iszero(extcodesize(_mom)) {
                 return(0, 0)
             }
-
-            let pointer := mload(0x40)
-            mstore(0x40, add(pointer, 0x44))
-
-            mstore(pointer, shl(0xe0, 0x65e4ad9e))
-            mstore(add(pointer, 0x04), deployer)
-            mstore(add(pointer, 0x24), target)
-            
-            if iszero(staticcall(gas(), auth, pointer, 0x44, pointer, 0x20)) {
+            let ptr := mload(0x40)
+            mstore(0x40, add(ptr, 0x44))
+            mstore(ptr, shl(0xe0, 0x4538c4eb))
+            mstore(add(ptr, 0x04), usr)
+            mstore(add(ptr, 0x24), aim)
+            if iszero(staticcall(gas(), _mom, ptr, 0x44, ptr, 0x20)) {
                 return(0, 0)
             }
-
-            if and(
-                not(iszero(returndatasize())),
-                iszero(mload(pointer))
-            ) { return(0, 0) }
+            if and(not(iszero(returndatasize())), iszero(mload(ptr))) {
+                return(0, 0)
+            }
         }
-
         return true;
     }
 }

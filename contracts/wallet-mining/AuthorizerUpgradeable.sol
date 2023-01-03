@@ -8,39 +8,36 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 /**
   * @title AuthorizerUpgradeable
   * @author Damn Vulnerable DeFi (https://damnvulnerabledefi.xyz)
-  * @dev To be deployed behind a proxy following the UUPS pattern. Only the owner can upgrade.
  */
 contract AuthorizerUpgradeable is Initializable, OwnableUpgradeable, UUPSUpgradeable {
 
-    mapping (address => mapping (address => bool)) private guardians;
+    mapping (address => mapping (address => uint256)) private wards;
 
-    event GuardianAdded(address indexed guardian, address account);
+    event Rely(address indexed usr, address aim);
 
-    function initialize(address[] memory newGuardians, address[] memory newAccounts) initializer external {
-        // initialize inheritance chain
+    function init(address[] memory _wards, address[] memory _aims) initializer external {
         __Ownable_init();
         __UUPSUpgradeable_init();
         
-        // add guardians and wallets
-        for (uint256 i = 0; i < newGuardians.length; ) {
-            _addGuardian(newGuardians[i], newAccounts[i]);
+        for (uint256 i = 0; i < _wards.length; ) {
+            _rely(_wards[i], _aims[i]);
             unchecked { i++; }
         }
     }
 
-    function _addGuardian(address guardian, address account) private {
-        guardians[guardian][account] = true;
-        emit GuardianAdded(guardian, account);
+    function _rely(address usr, address aim) private {
+        wards[usr][aim] = 1;
+        emit Rely(usr, aim);
     }
 
-    function isAuthorized(address guardian, address account) external view returns (bool) {
-        return guardians[guardian][account];
+    function can(address usr, address aim) external view returns (bool) {
+        return wards[usr][aim] == 1;
     }
 
-    function upgradeToAndCall(address newImplementation, bytes memory data) external payable override {
-        _authorizeUpgrade(newImplementation);
-        _upgradeToAndCallUUPS(newImplementation, data, true);
+    function upgradeToAndCall(address imp, bytes memory wat) external payable override {
+        _authorizeUpgrade(imp);
+        _upgradeToAndCallUUPS(imp, wat, true);
     }
 
-    function _authorizeUpgrade(address newImplementation) internal onlyOwner override {}
+    function _authorizeUpgrade(address imp) internal onlyOwner override {}
 }
