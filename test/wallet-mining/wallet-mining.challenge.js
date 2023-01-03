@@ -5,7 +5,7 @@ describe('[Challenge] Wallet mining', function () {
     let deployer, player;
     
     const DEPOSIT_ADDRESS = '0x9b6fb606a9f5789444c17768c6dfcf2f83563801';
-    const DEPOSIT_TOKEN_AMOUNT = ethers.utils.parseEther('20000000');
+    const DEPOSIT_TOKEN_AMOUNT = 20000000n * 10n ** 18n;
 
     before(async function () {
         /** SETUP SCENARIO - NO NEED TO CHANGE ANYTHING HERE */
@@ -95,6 +95,6 @@ describe('[Challenge] Wallet mining', function () {
         // Player must own all tokens
         expect(
             await this.token.balanceOf(player.address)
-        ).to.eq(DEPOSIT_TOKEN_AMOUNT.add(this.initialWalletDeployerTokenBalance)); 
+        ).to.eq(this.initialWalletDeployerTokenBalance.add(DEPOSIT_TOKEN_AMOUNT)); 
     });
 });
