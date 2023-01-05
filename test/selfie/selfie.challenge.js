@@ -1,32 +1,39 @@
 const { ethers } = require('hardhat');
 const { expect } = require('chai');
+const { time } = require("@nomicfoundation/hardhat-network-helpers");
 
 describe('[Challenge] Selfie', function () {
     let deployer, player;
 
-    const TOKEN_INITIAL_SUPPLY = ethers.utils.parseEther('2000000'); // 2 million tokens
-    const TOKENS_IN_POOL = ethers.utils.parseEther('1500000'); // 1.5 million tokens
+    const TOKEN_INITIAL_SUPPLY = 2000000n * 10n ** 18n;
+    const TOKENS_IN_POOL = 1500000n * 10n ** 18n;
     
     before(async function () {
         /** SETUP SCENARIO - NO NEED TO CHANGE ANYTHING HERE */
         [deployer, player] = await ethers.getSigners();
 
-        const DamnValuableTokenSnapshotFactory = await ethers.getContractFactory('DamnValuableTokenSnapshot', deployer);
-        const SimpleGovernanceFactory = await ethers.getContractFactory('SimpleGovernance', deployer);
-        const SelfiePoolFactory = await ethers.getContractFactory('SelfiePool', deployer);
+        // Deploy Damn Valuable Token Snapshot
+        this.token = await (await ethers.getContractFactory('DamnValuableTokenSnapshot', deployer)).deploy(TOKEN_INITIAL_SUPPLY);
 
-        this.token = await DamnValuableTokenSnapshotFactory.deploy(TOKEN_INITIAL_SUPPLY);
-        this.governance = await SimpleGovernanceFactory.deploy(this.token.address);
-        this.pool = await SelfiePoolFactory.deploy(
+        // Deploy governance contract
+        this.governance = await (await ethers.getContractFactory('SimpleGovernance', deployer)).deploy(this.token.address);
+        expect(await this.governance.getActionCounter()).to.eq(1);
+
+        // Deploy the pool
+        this.pool = await (await ethers.getContractFactory('SelfiePool', deployer)).deploy(
             this.token.address,
             this.governance.address    
         );
-
+        expect(await this.pool.token()).to.eq(this.token.address);
+        expect(await this.pool.governance()).to.eq(this.governance.address);
+        
+        // Fund the pool
         await this.token.transfer(this.pool.address, TOKENS_IN_POOL);
+        await this.token.snapshot();
+        expect(await this.token.balanceOf(this.pool.address)).to.be.equal(TOKENS_IN_POOL);
+        expect(await this.pool.maxFlashLoan(this.token.address)).to.eq(TOKENS_IN_POOL);
+        expect(await this.pool.flashFee(this.token.address, 0)).to.eq(0);
 
-        expect(
-            await this.token.balanceOf(this.pool.address)
-        ).to.be.equal(TOKENS_IN_POOL);
     });
 
     it('Execution', async function () {
@@ -42,6 +49,6 @@ describe('[Challenge] Selfie', function () {
         ).to.be.equal(TOKENS_IN_POOL);        
         expect(
             await this.token.balanceOf(this.pool.address)
-        ).to.be.equal('0');
+        ).to.be.equal(0);
     });
 });
