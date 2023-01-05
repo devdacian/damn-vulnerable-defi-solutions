@@ -14,10 +14,11 @@ describe('[Challenge] ABI smuggling', function () {
 
         // Deploy Vault
         this.vault = await (await ethers.getContractFactory('SelfAuthorizedVault', deployer)).deploy();
+        expect(await this.vault.getLastWithdrawalTimestamp()).to.not.eq(0);
 
         // Set permissions
-        const deployerPermission = await this.vault.getActionId("0x85fb709d", deployer.address, this.vault.address);
-        const playerPermission = await this.vault.getActionId("0xd9caed12", player.address, this.vault.address);
+        const deployerPermission = await this.vault.getActionId('0x85fb709d', deployer.address, this.vault.address);
+        const playerPermission = await this.vault.getActionId('0xd9caed12', player.address, this.vault.address);
         await this.vault.setPermissions([deployerPermission, playerPermission]);
         expect(await this.vault.permissions(deployerPermission)).to.be.true;
         expect(await this.vault.permissions(playerPermission)).to.be.true;
@@ -34,10 +35,10 @@ describe('[Challenge] ABI smuggling', function () {
         // Cannot call Vault directly
         await expect(
             this.vault.sweepFunds(deployer.address, this.token.address)
-        ).to.be.revertedWith("Bad caller");
+        ).to.be.revertedWithCustomError(this.vault, 'CallerNotAllowed');
         await expect(
             this.vault.connect(player).withdraw(this.token.address, player.address, 10n ** 18n)
-        ).to.be.revertedWith("Bad caller");
+        ).to.be.revertedWithCustomError(this.vault, 'CallerNotAllowed');
     });
 
     it('Execution', async function () {
@@ -45,12 +46,10 @@ describe('[Challenge] ABI smuggling', function () {
     });
 
     after(async function () {
-        /** SUCCESS CONDITIONS */
-        expect(
-            await this.token.balanceOf(this.vault.address)
-        ).to.eq(0);
-        expect(
-            await this.token.balanceOf(player.address)
-        ).to.eq(VAULT_TOKEN_BALANCE);
+        /** SUCCESS CONDITIONS - NO NEED TO CHANGE ANYTHING HERE */
+        
+        // Player took all tokens from the vault
+        expect(await this.token.balanceOf(this.vault.address)).to.eq(0);
+        expect(await this.token.balanceOf(player.address)).to.eq(VAULT_TOKEN_BALANCE);
     });
 });
