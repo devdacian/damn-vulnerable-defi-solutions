@@ -20,6 +20,7 @@ module.exports = {
       paths: [
         '@gnosis.pm/safe-contracts/contracts/GnosisSafe.sol',
         '@gnosis.pm/safe-contracts/contracts/proxies/GnosisSafeProxyFactory.sol',
+        'solmate/src/tokens/WETH.sol',
       ],
     }
 }

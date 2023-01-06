@@ -3,9 +3,8 @@ pragma solidity ^0.8.0;
 
 import "solady/src/utils/FixedPointMathLib.sol";
 import "solady/src/utils/SafeTransferLib.sol";
-import "./RewardToken.sol";
-import "../DamnValuableToken.sol";
-import "./AccountingToken.sol";
+import { RewardToken } from "./RewardToken.sol";
+import { AccountingToken } from "./AccountingToken.sol";
 
 /**
  * @title TheRewarderPool
@@ -20,7 +19,7 @@ contract TheRewarderPool {
     uint256 public constant REWARDS = 100 ether;
 
     // Token deposited into the pool by users
-    DamnValuableToken public immutable liquidityToken;
+    address public immutable liquidityToken;
 
     // Token used for internal accounting and snapshots
     // Pegged 1:1 with the liquidity token
@@ -36,9 +35,9 @@ contract TheRewarderPool {
 
     error InvalidDepositAmount();
 
-    constructor(address tokenAddress) {
+    constructor(address _token) {
         // Assuming all tokens have 18 decimals
-        liquidityToken = DamnValuableToken(tokenAddress);
+        liquidityToken = _token;
         accountingToken = new AccountingToken();
         rewardToken = new RewardToken();
 
@@ -59,7 +58,7 @@ contract TheRewarderPool {
         distributeRewards();
 
         SafeTransferLib.safeTransferFrom(
-            address(liquidityToken),
+            liquidityToken,
             msg.sender,
             address(this),
             amount
@@ -68,7 +67,7 @@ contract TheRewarderPool {
 
     function withdraw(uint256 amount) external {
         accountingToken.burn(msg.sender, amount);
-        SafeTransferLib.safeTransfer(address(liquidityToken), msg.sender, amount);
+        SafeTransferLib.safeTransfer(liquidityToken, msg.sender, amount);
     }
 
     function distributeRewards() public returns (uint256 rewards) {

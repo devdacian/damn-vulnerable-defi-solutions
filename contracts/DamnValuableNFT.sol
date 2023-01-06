@@ -12,7 +12,7 @@ import "solady/src/auth/OwnableRoles.sol";
  */
 contract DamnValuableNFT is ERC721, ERC721Burnable, OwnableRoles {
     uint256 public constant MINTER_ROLE = _ROLE_0;
-    uint256 private _tokenIdCounter;
+    uint256 public tokenIdCounter;
 
     constructor() ERC721("DamnValuableNFT", "DVNFT") {
         _initializeOwner(msg.sender);
@@ -20,8 +20,8 @@ contract DamnValuableNFT is ERC721, ERC721Burnable, OwnableRoles {
     }
 
     function safeMint(address to) public onlyRoles(MINTER_ROLE) returns (uint256 tokenId) {
-        tokenId = _tokenIdCounter;
+        tokenId = tokenIdCounter;
         _safeMint(to, tokenId);
-        ++_tokenIdCounter;
+        ++tokenIdCounter;
     }
 }
