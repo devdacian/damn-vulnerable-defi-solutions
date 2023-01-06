@@ -1,7 +1,9 @@
 const { expect } = require('chai');
 const { ethers } = require('hardhat');
+const { setBalance } = require('@nomicfoundation/hardhat-network-helpers');
 
 describe('Compromised challenge', function () {
+    let deployer, player;
 
     const sources = [
         '0xA73209FB1a42495120166736362A1DfA9F95A105',
@@ -9,9 +11,10 @@ describe('Compromised challenge', function () {
         '0x81A5D6E50C214044bE44cA0CB057fe119097850c'
     ];
 
-    let deployer, player;
-    const EXCHANGE_INITIAL_ETH_BALANCE = ethers.utils.parseEther('9990');
-    const INITIAL_NFT_PRICE = ethers.utils.parseEther('999');
+    const EXCHANGE_INITIAL_ETH_BALANCE = 9990n * 10n ** 18n;
+    const INITIAL_NFT_PRICE = 999n * 10n ** 18n;
+    const PLAYER_INITIAL_ETH_BALANCE = 1n * 10n ** 17n;
+    const TRUSTED_SOURCE_INITIAL_ETH_BALANCE = 2n * 10n ** 18n;
 
     before(async function () {
         /** SETUP SCENARIO - NO NEED TO CHANGE ANYTHING HERE */
@@ -24,23 +27,13 @@ describe('Compromised challenge', function () {
 
         // Initialize balance of the trusted source addresses
         for (let i = 0; i < sources.length; i++) {
-            await ethers.provider.send("hardhat_setBalance", [
-                sources[i],
-                "0x1bc16d674ec80000", // 2 ETH
-            ]);
-            expect(
-                await ethers.provider.getBalance(sources[i])
-            ).to.equal(ethers.utils.parseEther('2'));
+            setBalance(sources[i], TRUSTED_SOURCE_INITIAL_ETH_BALANCE);
+            expect(await ethers.provider.getBalance(sources[i])).to.equal(TRUSTED_SOURCE_INITIAL_ETH_BALANCE);
         }
 
-        // Player starts with 0.1 ETH in balance
-        await ethers.provider.send("hardhat_setBalance", [
-            player.address,
-            "0x16345785d8a0000", // 0.1 ETH
-        ]);
-        expect(
-            await ethers.provider.getBalance(player.address)
-        ).to.equal(ethers.utils.parseEther('0.1'));
+        // Player starts with limited balance
+        setBalance(player.address, PLAYER_INITIAL_ETH_BALANCE);
+        expect(await ethers.provider.getBalance(player.address)).to.equal(PLAYER_INITIAL_ETH_BALANCE);
 
         // Deploy the oracle and setup the trusted sources with initial prices
         this.oracle = await TrustfulOracleFactory.attach(
@@ -69,7 +62,7 @@ describe('Compromised challenge', function () {
         // Exchange must have lost all ETH
         expect(
             await ethers.provider.getBalance(this.exchange.address)
-        ).to.be.eq('0');
+        ).to.be.eq(0);
         
         // Player's ETH balance must have significantly increased
         expect(
@@ -79,7 +72,7 @@ describe('Compromised challenge', function () {
         // Player must not own any NFT
         expect(
             await this.nftToken.balanceOf(player.address)
-        ).to.be.eq('0');
+        ).to.be.eq(0);
 
         // NFT price shouldn't have changed
         expect(
