@@ -4,6 +4,7 @@ const { setBalance } = require('@nomicfoundation/hardhat-network-helpers');
 
 describe('Compromised challenge', function () {
     let deployer, player;
+    let oracle, exchange, nftToken;
 
     const sources = [
         '0xA73209FB1a42495120166736362A1DfA9F95A105',
@@ -11,7 +12,7 @@ describe('Compromised challenge', function () {
         '0x81A5D6E50C214044bE44cA0CB057fe119097850c'
     ];
 
-    const EXCHANGE_INITIAL_ETH_BALANCE = 9990n * 10n ** 18n;
+    const EXCHANGE_INITIAL_ETH_BALANCE = 999n * 10n ** 18n;
     const INITIAL_NFT_PRICE = 999n * 10n ** 18n;
     const PLAYER_INITIAL_ETH_BALANCE = 1n * 10n ** 17n;
     const TRUSTED_SOURCE_INITIAL_ETH_BALANCE = 2n * 10n ** 18n;
@@ -36,23 +37,23 @@ describe('Compromised challenge', function () {
         expect(await ethers.provider.getBalance(player.address)).to.equal(PLAYER_INITIAL_ETH_BALANCE);
 
         // Deploy the oracle and setup the trusted sources with initial prices
-        this.oracle = await TrustfulOracleFactory.attach(
+        oracle = await TrustfulOracleFactory.attach(
             await (await TrustfulOracleInitializerFactory.deploy(
                 sources,
-                ["DVNFT", "DVNFT", "DVNFT"],
+                ['DVNFT', 'DVNFT', 'DVNFT'],
                 [INITIAL_NFT_PRICE, INITIAL_NFT_PRICE, INITIAL_NFT_PRICE]
             )).oracle()
         );
 
-        // Deploy the exchange and get the associated ERC721 token
-        this.exchange = await ExchangeFactory.deploy(
-            this.oracle.address,
+        // Deploy the exchange and get an instance to the associated ERC721 token
+        exchange = await ExchangeFactory.deploy(
+            oracle.address,
             { value: EXCHANGE_INITIAL_ETH_BALANCE }
         );
-        this.nftToken = await DamnValuableNFTFactory.attach(await this.exchange.token());
+        nftToken = await DamnValuableNFTFactory.attach(await exchange.token());
     });
 
-    it('Execution', async function () {        
+    it('Execution', async function () {
         /** CODE YOUR SOLUTION HERE */
     });
 
@@ -61,7 +62,7 @@ describe('Compromised challenge', function () {
         
         // Exchange must have lost all ETH
         expect(
-            await ethers.provider.getBalance(this.exchange.address)
+            await ethers.provider.getBalance(exchange.address)
         ).to.be.eq(0);
         
         // Player's ETH balance must have significantly increased
@@ -71,12 +72,12 @@ describe('Compromised challenge', function () {
         
         // Player must not own any NFT
         expect(
-            await this.nftToken.balanceOf(player.address)
+            await nftToken.balanceOf(player.address)
         ).to.be.eq(0);
 
         // NFT price shouldn't have changed
         expect(
-            await this.oracle.getMedianPrice("DVNFT")
+            await oracle.getMedianPrice('DVNFT')
         ).to.eq(INITIAL_NFT_PRICE);
     });
 });
