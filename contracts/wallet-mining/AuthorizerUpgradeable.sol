@@ -6,22 +6,23 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 /**
-  * @title AuthorizerUpgradeable
-  * @author Damn Vulnerable DeFi (https://damnvulnerabledefi.xyz)
+ * @title AuthorizerUpgradeable
+ * @author Damn Vulnerable DeFi (https://damnvulnerabledefi.xyz)
  */
 contract AuthorizerUpgradeable is Initializable, OwnableUpgradeable, UUPSUpgradeable {
-
-    mapping (address => mapping (address => uint256)) private wards;
+    mapping(address => mapping(address => uint256)) private wards;
 
     event Rely(address indexed usr, address aim);
 
-    function init(address[] memory _wards, address[] memory _aims) initializer external {
+    function init(address[] memory _wards, address[] memory _aims) external initializer {
         __Ownable_init();
         __UUPSUpgradeable_init();
-        
-        for (uint256 i = 0; i < _wards.length; ) {
+
+        for (uint256 i = 0; i < _wards.length;) {
             _rely(_wards[i], _aims[i]);
-            unchecked { i++; }
+            unchecked {
+                i++;
+            }
         }
     }
 
@@ -39,5 +40,5 @@ contract AuthorizerUpgradeable is Initializable, OwnableUpgradeable, UUPSUpgrade
         _upgradeToAndCallUUPS(imp, wat, true);
     }
 
-    function _authorizeUpgrade(address imp) internal onlyOwner override {}
+    function _authorizeUpgrade(address imp) internal override onlyOwner {}
 }

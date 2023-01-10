@@ -87,10 +87,10 @@ describe('[Challenge] Wallet mining', function () {
         // The deposit address and the Safe Deployer contract must not hold tokens
         expect(
             await this.token.balanceOf(DEPOSIT_ADDRESS)
-        ).to.eq('0');
+        ).to.eq(0);
         expect(
             await this.token.balanceOf(this.walletDeployer.address)
-        ).to.eq('0');
+        ).to.eq(0);
 
         // Player must own all tokens
         expect(
