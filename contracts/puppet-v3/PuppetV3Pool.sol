@@ -3,6 +3,7 @@ pragma solidity =0.7.6;
 
 import "@uniswap/v3-core/contracts/interfaces/IERC20Minimal.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
+import "@uniswap/v3-core/contracts/libraries/TransferHelper.sol";
 import "@uniswap/v3-periphery/contracts/libraries/OracleLibrary.sol";
 
 /**
@@ -11,25 +12,18 @@ import "@uniswap/v3-periphery/contracts/libraries/OracleLibrary.sol";
  * @author Damn Vulnerable DeFi (https://damnvulnerabledefi.xyz)
  */
 contract PuppetV3Pool {
+    uint256 public constant DEPOSIT_FACTOR = 3;
+    uint32 public constant TWAP_PERIOD = 10 minutes;
 
     IERC20Minimal public immutable weth;
     IERC20Minimal public immutable token;
     IUniswapV3Pool public immutable uniswapV3Pool;
-    uint256 public constant DEPOSIT_FACTOR = 3;
-    
-    mapping(address => uint256) public deposits;
-        
-    event Borrowed(
-        address indexed borrower,
-        uint256 depositAmount,
-        uint256 borrowAmount
-    );
 
-    constructor (
-        IERC20Minimal _weth,
-        IERC20Minimal _token,
-        IUniswapV3Pool _uniswapV3Pool
-    ) {
+    mapping(address => uint256) public deposits;
+
+    event Borrowed(address indexed borrower, uint256 depositAmount, uint256 borrowAmount);
+
+    constructor(IERC20Minimal _weth, IERC20Minimal _token, IUniswapV3Pool _uniswapV3Pool) {
         weth = _weth;
         token = _token;
         uniswapV3Pool = _uniswapV3Pool;
@@ -42,18 +36,16 @@ contract PuppetV3Pool {
      * @param borrowAmount amount of tokens the user intends to borrow
      */
     function borrow(uint256 borrowAmount) external {
-        require(token.balanceOf(address(this)) >= borrowAmount, "Not enough token balance");
-
         // Calculate how much WETH the user must deposit
         uint256 depositOfWETHRequired = calculateDepositOfWETHRequired(borrowAmount);
-        
+
         // Pull the WETH
         weth.transferFrom(msg.sender, address(this), depositOfWETHRequired);
 
         // internal accounting
         deposits[msg.sender] += depositOfWETHRequired;
 
-        require(token.transfer(msg.sender, borrowAmount), "Token transfer failed");
+        TransferHelper.safeTransfer(address(token), msg.sender, borrowAmount);
 
         emit Borrowed(msg.sender, depositOfWETHRequired, borrowAmount);
     }
@@ -64,12 +56,12 @@ contract PuppetV3Pool {
     }
 
     function _getOracleQuote(uint128 amount) private view returns (uint256) {
-        (int24 arithmeticMeanTick, ) = OracleLibrary.consult(address(uniswapV3Pool), 10 minutes);
+        (int24 arithmeticMeanTick,) = OracleLibrary.consult(address(uniswapV3Pool), TWAP_PERIOD);
         return OracleLibrary.getQuoteAtTick(
             arithmeticMeanTick,
-            amount,             // baseAmount
-            address(token),     // baseToken
-            address(weth)       // quoteToken
+            amount, // baseAmount
+            address(token), // baseToken
+            address(weth) // quoteToken
         );
     }
 
