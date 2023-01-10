@@ -3,6 +3,7 @@ const { expect } = require('chai');
 
 describe('[Challenge] Truster', function () {
     let deployer, player;
+    let token, pool;
 
     const TOKENS_IN_POOL = 1000000n * 10n ** 18n;
 
@@ -10,14 +11,14 @@ describe('[Challenge] Truster', function () {
         /** SETUP SCENARIO - NO NEED TO CHANGE ANYTHING HERE */
         [deployer, player] = await ethers.getSigners();
 
-        this.token = await (await ethers.getContractFactory('DamnValuableToken', deployer)).deploy();
-        this.pool = await (await ethers.getContractFactory('TrusterLenderPool', deployer)).deploy(this.token.address);
-        expect(await this.pool.token()).to.eq(this.token.address);
+        token = await (await ethers.getContractFactory('DamnValuableToken', deployer)).deploy();
+        pool = await (await ethers.getContractFactory('TrusterLenderPool', deployer)).deploy(token.address);
+        expect(await pool.token()).to.eq(token.address);
 
-        await this.token.transfer(this.pool.address, TOKENS_IN_POOL);
-        expect(await this.token.balanceOf(this.pool.address)).to.equal(TOKENS_IN_POOL);
+        await token.transfer(pool.address, TOKENS_IN_POOL);
+        expect(await token.balanceOf(pool.address)).to.equal(TOKENS_IN_POOL);
 
-        expect(await this.token.balanceOf(player.address)).to.equal(0);
+        expect(await token.balanceOf(player.address)).to.equal(0);
     });
 
     it('Execution', async function () {
@@ -29,10 +30,10 @@ describe('[Challenge] Truster', function () {
 
         // Player has taken all tokens from the pool
         expect(
-            await this.token.balanceOf(player.address)
+            await token.balanceOf(player.address)
         ).to.equal(TOKENS_IN_POOL);
         expect(
-            await this.token.balanceOf(this.pool.address)
+            await token.balanceOf(pool.address)
         ).to.equal(0);
     });
 });
