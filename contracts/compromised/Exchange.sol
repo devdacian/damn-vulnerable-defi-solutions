@@ -26,6 +26,7 @@ contract Exchange is ReentrancyGuard {
 
     constructor(address _oracle) payable {
         token = new DamnValuableNFT();
+        token.renounceOwnership();
         oracle = TrustfulOracle(_oracle);
     }
 

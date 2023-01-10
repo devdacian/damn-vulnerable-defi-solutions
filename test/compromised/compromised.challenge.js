@@ -20,24 +20,20 @@ describe('Compromised challenge', function () {
     before(async function () {
         /** SETUP SCENARIO - NO NEED TO CHANGE ANYTHING HERE */
         [deployer, player] = await ethers.getSigners();
-
-        const ExchangeFactory = await ethers.getContractFactory('Exchange', deployer);
-        const DamnValuableNFTFactory = await ethers.getContractFactory('DamnValuableNFT', deployer);
-        const TrustfulOracleFactory = await ethers.getContractFactory('TrustfulOracle', deployer);
-        const TrustfulOracleInitializerFactory = await ethers.getContractFactory('TrustfulOracleInitializer', deployer);
-
+        
         // Initialize balance of the trusted source addresses
         for (let i = 0; i < sources.length; i++) {
             setBalance(sources[i], TRUSTED_SOURCE_INITIAL_ETH_BALANCE);
             expect(await ethers.provider.getBalance(sources[i])).to.equal(TRUSTED_SOURCE_INITIAL_ETH_BALANCE);
         }
-
+        
         // Player starts with limited balance
         setBalance(player.address, PLAYER_INITIAL_ETH_BALANCE);
         expect(await ethers.provider.getBalance(player.address)).to.equal(PLAYER_INITIAL_ETH_BALANCE);
-
+        
         // Deploy the oracle and setup the trusted sources with initial prices
-        oracle = await TrustfulOracleFactory.attach(
+        const TrustfulOracleInitializerFactory = await ethers.getContractFactory('TrustfulOracleInitializer', deployer);
+        oracle = await (await ethers.getContractFactory('TrustfulOracle', deployer)).attach(
             await (await TrustfulOracleInitializerFactory.deploy(
                 sources,
                 ['DVNFT', 'DVNFT', 'DVNFT'],
@@ -46,11 +42,13 @@ describe('Compromised challenge', function () {
         );
 
         // Deploy the exchange and get an instance to the associated ERC721 token
-        exchange = await ExchangeFactory.deploy(
+        exchange = await (await ethers.getContractFactory('Exchange', deployer)).deploy(
             oracle.address,
             { value: EXCHANGE_INITIAL_ETH_BALANCE }
         );
-        nftToken = await DamnValuableNFTFactory.attach(await exchange.token());
+        nftToken = await (await ethers.getContractFactory('DamnValuableNFT', deployer)).attach(await exchange.token());
+        expect(await nftToken.owner()).to.eq(ethers.constants.AddressZero); // ownership renounced
+        expect(await nftToken.rolesOf(exchange.address)).to.eq(await nftToken.MINTER_ROLE());
     });
 
     it('Execution', async function () {

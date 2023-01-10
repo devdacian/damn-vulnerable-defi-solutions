@@ -28,6 +28,13 @@ describe('[Challenge] The rewarder', function () {
         rewardToken = RewardTokenFactory.attach(await rewarderPool.rewardToken());
         accountingToken = AccountingTokenFactory.attach(await rewarderPool.accountingToken());
 
+        // Check roles in accounting token
+        expect(await accountingToken.owner()).to.eq(rewarderPool.address);
+        const minterRole = await accountingToken.MINTER_ROLE();
+        const snapshotRole = await accountingToken.SNAPSHOT_ROLE();
+        const burnerRole = await accountingToken.BURNER_ROLE();
+        expect(await accountingToken.hasAllRoles(rewarderPool.address, minterRole | snapshotRole | burnerRole)).to.be.true;
+
         // Alice, Bob, Charlie and David deposit tokens
         let depositAmount = 100n * 10n ** 18n; 
         for (let i = 0; i < users.length; i++) {

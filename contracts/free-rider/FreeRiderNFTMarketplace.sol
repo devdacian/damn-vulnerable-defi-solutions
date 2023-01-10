@@ -31,6 +31,7 @@ contract FreeRiderNFTMarketplace is ReentrancyGuard {
 
     constructor(uint256 amount) payable {
         DamnValuableNFT _token = new DamnValuableNFT();
+        _token.renounceOwnership();
         for (uint256 i = 0; i < amount; ) {
             _token.safeMint(msg.sender);
             unchecked { ++i; }

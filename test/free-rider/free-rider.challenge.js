@@ -80,6 +80,8 @@ describe('[Challenge] Free Rider', function () {
 
         // Deploy NFT contract
         nft = await (await ethers.getContractFactory('DamnValuableNFT', deployer)).attach(await marketplace.token());
+        expect(await nft.owner()).to.eq(ethers.constants.AddressZero); // ownership renounced
+        expect(await nft.rolesOf(marketplace.address)).to.eq(await nft.MINTER_ROLE());
 
         // Ensure deployer owns all minted NFTs. Then approve the marketplace to trade them.
         for (let id = 0; id < AMOUNT_OF_NFTS; id++) {
