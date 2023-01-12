@@ -11,7 +11,7 @@ describe('[Challenge] Wallet mining', function () {
 
     before(async function () {
         /** SETUP SCENARIO - NO NEED TO CHANGE ANYTHING HERE */
-        [ deployer, guardian, player ] = await ethers.getSigners();
+        [ deployer, ward, player ] = await ethers.getSigners();
 
         // Deploy Damn Valuable Token contract
         token = await (await ethers.getContractFactory('DamnValuableToken', deployer)).deploy();
@@ -19,12 +19,12 @@ describe('[Challenge] Wallet mining', function () {
         // Deploy authorizer with the corresponding proxy
         authorizer = await upgrades.deployProxy(
             await ethers.getContractFactory('AuthorizerUpgradeable', deployer),
-            [ [ guardian.address ], [ DEPOSIT_ADDRESS ] ], // initialization data
+            [ [ ward.address ], [ DEPOSIT_ADDRESS ] ], // initialization data
             { kind: 'uups', initializer: 'init' }
         );
         
         expect(await authorizer.owner()).to.eq(deployer.address);
-        expect(await authorizer.can(guardian.address, DEPOSIT_ADDRESS)).to.be.true;
+        expect(await authorizer.can(ward.address, DEPOSIT_ADDRESS)).to.be.true;
         expect(await authorizer.can(player.address, DEPOSIT_ADDRESS)).to.be.false;
 
         // Deploy Safe Deployer contract
@@ -38,7 +38,7 @@ describe('[Challenge] Wallet mining', function () {
         await walletDeployer.rule(authorizer.address);
         expect(await walletDeployer.mom()).to.eq(authorizer.address);
 
-        await expect(walletDeployer.can(guardian.address, DEPOSIT_ADDRESS)).not.to.be.reverted;
+        await expect(walletDeployer.can(ward.address, DEPOSIT_ADDRESS)).not.to.be.reverted;
         await expect(walletDeployer.can(player.address, DEPOSIT_ADDRESS)).to.be.reverted;
 
         // Fund Safe Deployer with tokens
