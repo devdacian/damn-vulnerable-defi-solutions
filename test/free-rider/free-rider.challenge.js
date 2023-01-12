@@ -8,8 +8,8 @@ const { expect } = require('chai');
 const { setBalance } = require("@nomicfoundation/hardhat-network-helpers");
 
 describe('[Challenge] Free Rider', function () {
-    let deployer, player, buyer;
-    let weth, token, uniswapFactory, uniswapRouter, uniswapPair, marketplace, nft, buyerContract;
+    let deployer, player, devs;
+    let weth, token, uniswapFactory, uniswapRouter, uniswapPair, marketplace, nft, devsContract;
 
     // The NFT marketplace will have 6 tokens, at 15 ETH each
     const NFT_PRICE = 15n * 10n ** 18n;
@@ -18,7 +18,7 @@ describe('[Challenge] Free Rider', function () {
     
     const PLAYER_INITIAL_ETH_BALANCE = 1n * 10n ** 17n;
 
-    const PRIZE = 45n * 10n ** 18n;
+    const BOUNTY = 45n * 10n ** 18n;
 
     // Initial reserves for the Uniswap v2 pool
     const UNISWAP_INITIAL_TOKEN_RESERVE = 15000n * 10n ** 18n;
@@ -26,7 +26,7 @@ describe('[Challenge] Free Rider', function () {
 
     before(async function () {
         /** SETUP SCENARIO - NO NEED TO CHANGE ANYTHING HERE */
-        [deployer, player, buyer] = await ethers.getSigners();
+        [deployer, player, devs] = await ethers.getSigners();
 
         // Player starts with limited ETH balance
         setBalance(player.address, PLAYER_INITIAL_ETH_BALANCE);
@@ -96,11 +96,11 @@ describe('[Challenge] Free Rider', function () {
         );
         expect(await marketplace.offersCount()).to.be.eq(6);
 
-        // Deploy buyer's contract, adding the player as the beneficiary
-        buyerContract = await (await ethers.getContractFactory('FreeRiderBuyer', buyer)).deploy(
+        // Deploy devs' contract, adding the player as the beneficiary
+        devsContract = await (await ethers.getContractFactory('FreeRiderRecovery', devs)).deploy(
             player.address, // beneficiary
             nft.address, 
-            { value: PRIZE }
+            { value: BOUNTY }
         );
     });
 
@@ -111,10 +111,10 @@ describe('[Challenge] Free Rider', function () {
     after(async function () {
         /** SUCCESS CONDITIONS - NO NEED TO CHANGE ANYTHING HERE */
 
-        // The buyer extracts all NFTs from its associated contract
+        // The devs extract all NFTs from its associated contract
         for (let tokenId = 0; tokenId < AMOUNT_OF_NFTS; tokenId++) {
-            await nft.connect(buyer).transferFrom(buyerContract.address, buyer.address, tokenId);
-            expect(await nft.ownerOf(tokenId)).to.be.eq(buyer.address);
+            await nft.connect(devs).transferFrom(devsContract.address, devs.address, tokenId);
+            expect(await nft.ownerOf(tokenId)).to.be.eq(devs.address);
         }
 
         // Exchange must have lost NFTs and ETH
@@ -124,7 +124,7 @@ describe('[Challenge] Free Rider', function () {
         ).to.be.lt(MARKETPLACE_INITIAL_ETH_BALANCE);
 
         // Player must have earned all ETH
-        expect(await ethers.provider.getBalance(player.address)).to.be.gt(PRIZE);
-        expect(await ethers.provider.getBalance(buyerContract.address)).to.be.eq(0);
+        expect(await ethers.provider.getBalance(player.address)).to.be.gt(BOUNTY);
+        expect(await ethers.provider.getBalance(devsContract.address)).to.be.eq(0);
     });
 });

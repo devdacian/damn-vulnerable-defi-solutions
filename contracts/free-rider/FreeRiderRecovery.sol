@@ -7,10 +7,10 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
 /**
- * @title FreeRiderBuyer
+ * @title FreeRiderRecovery
  * @author Damn Vulnerable DeFi (https://damnvulnerabledefi.xyz)
  */
-contract FreeRiderBuyer is ReentrancyGuard, IERC721Receiver {
+contract FreeRiderRecovery is ReentrancyGuard, IERC721Receiver {
     using Address for address payable;
 
     uint256 private constant PRIZE = 45 ether;
