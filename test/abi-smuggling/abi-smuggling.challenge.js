@@ -2,14 +2,14 @@ const { ethers } = require('hardhat');
 const { expect } = require('chai');
 
 describe('[Challenge] ABI smuggling', function () {
-    let deployer, player;
+    let deployer, player, recovery;
     let token, vault;
     
     const VAULT_TOKEN_BALANCE = 1000000n * 10n ** 18n;
 
     before(async function () {
         /** SETUP SCENARIO - NO NEED TO CHANGE ANYTHING HERE */
-        [ deployer, player ] = await ethers.getSigners();
+        [ deployer, player, recovery ] = await ethers.getSigners();
 
         // Deploy Damn Valuable Token contract
         token = await (await ethers.getContractFactory('DamnValuableToken', deployer)).deploy();
@@ -49,9 +49,8 @@ describe('[Challenge] ABI smuggling', function () {
 
     after(async function () {
         /** SUCCESS CONDITIONS - NO NEED TO CHANGE ANYTHING HERE */
-        
-        // Player took all tokens from the vault
         expect(await token.balanceOf(vault.address)).to.eq(0);
-        expect(await token.balanceOf(player.address)).to.eq(VAULT_TOKEN_BALANCE);
+        expect(await token.balanceOf(player.address)).to.eq(0);
+        expect(await token.balanceOf(recovery.address)).to.eq(VAULT_TOKEN_BALANCE);
     });
 });
