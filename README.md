@@ -1,5 +1,5 @@
 # damn-vulnerable-defi-solutions
-Solutions to <a href="damnvulnerabledefi.xyz/">Damn Vulnerable DeFi</a> smart-contract hacking challenges.
+Solutions to <a href="https://damnvulnerabledefi.xyz">Damn Vulnerable DeFi</a> smart-contract hacking challenges.
 
 Using <a href="https://hardhat.org/tutorial">Hardhat</a>, includes automated unit tests verifying the attacks work.
 
