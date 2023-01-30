@@ -45,6 +45,34 @@ describe('[Challenge] Unstoppable', function () {
 
     it('Execution', async function () {
         /** CODE YOUR SOLUTION HERE */
+        // https://github.com/transmissions11/solmate/blob/main/src/mixins/ERC4626.sol
+        // 
+        // @audit UnstoppableVault.flashLoan() has following check:
+        //   uint256 balanceBefore = totalAssets();
+        //   if (convertToShares(totalSupply) != balanceBefore) revert InvalidBalance();
+        //
+        // First break down what data these variables & functions actually represent:
+        //
+        // a) balanceBefore = totalAssets()
+        //                  = token.balanceOf(vault)
+        // b) totalSupply   = totalVaultShares (ERC4626.deposit() calls ERC20._mint() 
+        //                                      which increases Vault.ERC20.totalSupply by shares)
+        // c) convertToShares(totalSupply)
+        //                  = convertToShares(totalVaultShares)
+        //                  = totalVaultShares.mulDivDown(totalVaultShares, totalAssets()) (see ERC4626.convertToShares())
+        //                  = totalVaultShares.mulDivDown(totalVaultShares, token.balanceOf(vault))
+        // contract requires: a) == c) 
+        //                    token.balanceOf(vault) == (totalVaultShares * totalVaultShares) / token.balanceOf(vault)
+        //                    2*token.balanceOf(vault) == 2*totalVaultShares
+        //                    token.balanceOf(vault) == totalVaultShares
+        //
+        // to force UnstoppableVault.flashLoan() to fail this check, 
+        // we need to change one of these without changing the other
+        // easiest way to do this is by calling token.transfer() as player to directly
+        // transfer our starting tokens to the vault, without going through Vault.deposit()
+        // this increases Vault.totalAssets() while keeping Vault.totalSupply() the same,
+        await token.connect(player).transfer(vault.address, INITIAL_PLAYER_TOKEN_BALANCE);
+        expect(await token.balanceOf(player.address)).to.eq(0);
     });
 
     after(async function () {
