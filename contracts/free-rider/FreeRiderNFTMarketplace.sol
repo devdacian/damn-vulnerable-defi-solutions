@@ -104,7 +104,8 @@ contract FreeRiderNFTMarketplace is ReentrancyGuard {
         _token.safeTransferFrom(_token.ownerOf(tokenId), msg.sender, tokenId);
 
         //@audit the marketplace sends its own ether to pay the token owners, so it will
-        // drain its own place due to not checking msg.value >= total price of all nfts 
+        // drain its own ether due to not checking msg.value >= total price of all nfts,
+        // if the attacker sends only enough to cover the highest-cost nft
 
         // pay seller using cached token
         payable(_token.ownerOf(tokenId)).sendValue(priceToPay);
