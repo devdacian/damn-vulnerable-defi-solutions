@@ -215,7 +215,7 @@ contract WalletRegistry is IProxyCreationCallback, Ownable {
 
 // the challenge requires we complete it 1 transaction, so the main attack must happen
 // in attack contract constructor. Hence that constructor needs to create this additional contract
-// so that this function can exist allowing GnosisSafeProxy to delegatecall() it
+// so that this external function can exist allowing GnosisSafeProxy to delegatecall() to it
 contract DelegateCallbackAttack {
     // this will be called by newly created GnosisSafeProxy using delegatecall()
     // this allows attacker to execute arbitrary code using GnosisSafeProxy context;
