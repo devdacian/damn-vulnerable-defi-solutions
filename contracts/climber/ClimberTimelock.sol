@@ -14,6 +14,9 @@ import {
     NewDelayAboveMax
 } from "./ClimberErrors.sol";
 
+// @audit
+// import "hardhat/console.sol";
+
 /**
  * @title ClimberTimelock
  * @author Damn Vulnerable DeFi (https://damnvulnerabledefi.xyz)
@@ -86,12 +89,25 @@ contract ClimberTimelock is ClimberTimelockBase {
         bytes32 id = getOperationId(targets, values, dataElements, salt);
 
         for (uint8 i = 0; i < targets.length;) {
+            // @audit
+            // console.log("ClimberTimelock.execute() iteration %i", i);
             targets[i].functionCallWithValue(dataElements[i], values[i]);
             unchecked {
                 ++i;
             }
         }
 
+        // @audit
+        //console.log("ClimberTimelock.execute() -> getOperationState() : %i", uint(getOperationState(id)));
+        //console.log("id calculated in ClimberTimelock.execute()");
+        //console.logBytes32(id);
+        //for(uint8 i=0; i<targets.length; i++) {console.log(targets[i]);}
+        //for(uint8 i=0; i<values.length; i++) {console.log(values[i]);}
+        //for(uint8 i=0; i<dataElements.length; i++) {console.logBytes(dataElements[i]);}
+        //console.logBytes(abi.encode(targets, values, dataElements, salt));
+
+        // @audit this check should be above the execution since it checks that
+        // ClimberTimeLockBase.operations contains the operation id.
         if (getOperationState(id) != OperationState.ReadyForExecution) {
             revert NotReadyForExecution(id);
         }
@@ -109,5 +125,7 @@ contract ClimberTimelock is ClimberTimelockBase {
         }
 
         delay = newDelay;
+        // @audit
+        // console.log("ClimberTimelock.updateDelay() changed delay to: %s", delay);
     }
 }

